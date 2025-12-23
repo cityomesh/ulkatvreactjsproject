@@ -1055,22 +1055,16 @@ const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
 // *** ProfileScreen COMPONENT (Unchanged) ***
 // =======================================================
 
-const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCreateProfile, profiles, onSelectProfile }) => {
-// ... (ProfileScreen Code remains the same) ...
-
+const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfile, profiles, onSelectProfile }) => {
     const MAX_PROFILES = 4;
-    
     const profileSlots = [];
-    
     profileSlots.push({ 
         id: 'slot-1', 
         name: loggedInUsername, 
         image: AVATAR_DEFAULT, 
         isFixed: true 
     });
-    
-    // 2. అదనపు ప్రొఫైల్స్ (3 వరకు)
-    profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+        profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
         profileSlots.push({ 
             ...p, 
             id: `slot-${idx + 2}`,
@@ -1078,7 +1072,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
         });
     });
     
-    // 3. ఖాళీ స్లాట్ ఉంటే 'Add Profile' బటన్
     const isAddSlotAvailable = profileSlots.length < MAX_PROFILES;
     
     if (isAddSlotAvailable) {
@@ -1095,7 +1088,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
     // --- Arrow Keys Navigation Logic ---
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // ప్రస్తుతం ఉన్న ఇండెక్స్ కనుక్కోవడం
             const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
 
             if (e.key === 'ArrowRight') {
@@ -1148,9 +1140,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
             minHeight: '100vh',
             backgroundColor: COLOR_BLACK,
             padding: '50px',
-            width: '100%',
-            position: 'relative',
-            zIndex: 5,
         },
         cardTitle: {
             fontSize: '40px',
@@ -1221,18 +1210,7 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
         },
         logoInCard: {
             width: '400px',
-            opacity: 0.5,
         },
-        logoutButton: {
-             marginTop: '40px', 
-             padding: '10px 20px', 
-             backgroundColor: COLOR_PRIMARY, 
-             color: COLOR_WHITE, 
-             border: 'none', 
-             borderRadius: '5px', 
-             cursor: 'pointer',
-             fontSize: '16px'
-        }
     };
     
     return (
@@ -1268,17 +1246,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
                 
                 <img src={LOGO_ULKA} alt="Ulka TV" style={styles.logoInCard} />
                 
-                <button 
-                    onClick={onLogout} 
-                    onFocus={() => setFocusedId('logout-btn')}
-                    style={{
-                        ...styles.logoutButton,
-                        border: focusedId === 'logout-btn' ? '4px solid white' : 'none',
-                        transform: focusedId === 'logout-btn' ? 'scale(1.05)' : 'scale(1)'
-                    }}
-                >
-                    Logout / Switch Account
-                </button>
             </div>
         );
     };
@@ -1286,7 +1253,7 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCr
 // =======================================================
 // *** LoginScreen COMPONENT (Updated with Keyboard Logic) ***
 // =======================================================
-const LoginScreen = () => {
+const LoginScreen = ({ startAtProfiles = false }) => {
     // --- State Management ---
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -1298,12 +1265,11 @@ const LoginScreen = () => {
     const layout = isSymbol ? SYMBOL_LAYOUT : KEYBOARD_LAYOUT;
     const [focusKey, setFocusKey] = useState('username'); 
     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
-
+    const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
     // API & Navigation State
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState('');
     const [accessToken, setAccessToken] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false); 
     const [isCreatingProfile, setIsCreatingProfile] = useState(false); 
     
     // *** కొత్త స్టేట్‌లు ***
@@ -1368,25 +1334,8 @@ const LoginScreen = () => {
                             setFocusedId(profileSlots[currentIndex + 1].id);
                         }
                         break;
-                    case 'ArrowDown':
-                        setFocusedId('logout-btn'); // కింద ఉన్న లాగౌట్ బటన్ కి వెళ్తుంది
-                        break;
-                    case 'ArrowUp':
-                        if (focusedId === 'logout-btn') {
-                            setFocusedId(profileSlots[0].id);
-                        }
-                        break;
-                    case 'Enter':
-                        if (focusedId === 'logout-btn') {
-                            handleLogout();
-                        } else {
-                            const activeSlot = profileSlots.find(s => s.id === focusedId);
-                            if (activeSlot) {
-                                if (activeSlot.isAddButton) setIsCreatingProfile(true);
-                                else handleSelectProfileAndNavigate(activeSlot.name);
-                            }
-                        }
-                        break;
+                
+            
                 }
                 return; // ప్రొఫైల్ స్క్రీన్ లో ఉన్నప్పుడు కింద ఉన్న లాగిన్ లాజిక్ కి వెళ్ళదు
             }
@@ -1449,7 +1398,6 @@ const LoginScreen = () => {
     }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, focusedId, profiles, isCreatingProfile]);
 
 
-
     // 2. రిమోట్ 'Enter' నొక్కినప్పుడు మాత్రమే కీబోర్డ్ ఓపెన్ అవ్వాలి
     const handleRemoteEnter = () => {
     if (focusKey === 'username' || focusKey === 'password') {
@@ -1503,7 +1451,6 @@ const LoginScreen = () => {
         handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
     }
     };
-
 
 
     // --- Background Image Rotation Effect (Unchanged) ---
