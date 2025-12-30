@@ -121,22 +121,16 @@
 // // *** ProfileScreen COMPONENT (Unchanged) ***
 // // =======================================================
 
-// const ProfileScreen = ({ username: loggedInUsername, accessToken, onLogout, onCreateProfile, profiles, onSelectProfile }) => {
-// // ... (ProfileScreen Code remains the same) ...
-
+// const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfile, profiles, onSelectProfile }) => {
 //     const MAX_PROFILES = 4;
-    
 //     const profileSlots = [];
-    
 //     profileSlots.push({ 
 //         id: 'slot-1', 
 //         name: loggedInUsername, 
 //         image: AVATAR_DEFAULT, 
 //         isFixed: true 
 //     });
-    
-//     // 2. అదనపు ప్రొఫైల్స్ (3 వరకు)
-//     profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+//         profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
 //         profileSlots.push({ 
 //             ...p, 
 //             id: `slot-${idx + 2}`,
@@ -144,7 +138,6 @@
 //         });
 //     });
     
-//     // 3. ఖాళీ స్లాట్ ఉంటే 'Add Profile' బటన్
 //     const isAddSlotAvailable = profileSlots.length < MAX_PROFILES;
     
 //     if (isAddSlotAvailable) {
@@ -156,6 +149,41 @@
 //     }
 
 //     const [focusedId, setFocusedId] = useState(profileSlots[0]?.id || null);
+
+
+//     // --- Arrow Keys Navigation Logic ---
+//     useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
+
+//             if (e.key === 'ArrowRight') {
+//                 if (currentIndex < profileSlots.length - 1) {
+//                     setFocusedId(profileSlots[currentIndex + 1].id);
+//                 }
+//             } else if (e.key === 'ArrowLeft') {
+//                 if (currentIndex > 0) {
+//                     setFocusedId(profileSlots[currentIndex - 1].id);
+//                 }
+//             } else if (e.key === 'ArrowDown') {
+//                 // ఒకవేళ కింద Logout బటన్ ఉంటే అక్కడికి వెళ్ళడానికి
+//                 setFocusedId('logout-btn');
+//             } else if (e.key === 'ArrowUp') {
+//                 if (focusedId === 'logout-btn') {
+//                     setFocusedId(profileSlots[0].id);
+//                 }
+//             } else if (e.key === 'Enter') {
+//                 if (focusedId === 'logout-btn') {
+//                     onLogout();
+//                 } else {
+//                     const activeSlot = profileSlots.find(s => s.id === focusedId);
+//                     if (activeSlot) handleProfileClick(activeSlot.name);
+//                 }
+//             }
+//         };
+
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [focusedId, profileSlots]);
 
 //     // *** లాజిక్ మార్పు: ఈ ఫంక్షన్ ఇప్పుడు ప్రొఫైల్ పేరును పేరెంట్ కు పంపుతుంది ***
 //     const handleProfileClick = (profileName) => {
@@ -178,9 +206,6 @@
 //             minHeight: '100vh',
 //             backgroundColor: COLOR_BLACK,
 //             padding: '50px',
-//             width: '100%',
-//             position: 'relative',
-//             zIndex: 5,
 //         },
 //         cardTitle: {
 //             fontSize: '40px',
@@ -251,82 +276,50 @@
 //         },
 //         logoInCard: {
 //             width: '400px',
-//             opacity: 0.5,
 //         },
-//         logoutButton: {
-//              marginTop: '40px', 
-//              padding: '10px 20px', 
-//              backgroundColor: COLOR_PRIMARY, 
-//              color: COLOR_WHITE, 
-//              border: 'none', 
-//              borderRadius: '5px', 
-//              cursor: 'pointer',
-//              fontSize: '16px'
-//         }
 //     };
     
 //     return (
-//         <div style={styles.profileView}>
-//              <h1 style={styles.cardTitle}>Who's Watching?</h1>
-             
-//             <div style={styles.profileButtonsContainer}>
-//                 {profileSlots.map((profileSlot) => {
-//                     const isFocused = focusedId === profileSlot.id;
-                    
-//                     if (profileSlot.isAddButton) {
-//                         // Add Profile బటన్
+//             <div style={styles.profileView}>
+//                 <h1 style={styles.cardTitle}>Who's Watching?</h1>
+                
+//                 <div style={styles.profileButtonsContainer}>
+//                     {profileSlots.map((profileSlot) => {
+//                         const isFocused = focusedId === profileSlot.id;
+                        
 //                         return (
 //                             <div key={profileSlot.id} style={styles.profileWrapper}>
 //                                 <button
-//                                     onClick={() => handleProfileClick('Add Profile')} // <<< అప్‌డేటెడ్
+//                                     // మౌస్ మరియు రిమోట్ రెండింటికీ పని చేసేలా
+//                                     onClick={() => handleProfileClick(profileSlot.name)} 
 //                                     onFocus={() => setFocusedId(profileSlot.id)}
-//                                     onBlur={() => setFocusedId(null)}
 //                                     style={{
-//                                         ...styles.addProfileButton,
+//                                         ... (profileSlot.isAddButton ? styles.addProfileButton : styles.profileButton),
 //                                         ...(isFocused ? styles.focused : {})
 //                                     }}
 //                                 >
-//                                     <span style={styles.addIconText}>+</span> 
-//                                 </button>
-//                                 <p style={styles.profileButtonText}>Add Profile</p>
-//                             </div>
-//                         );
-//                     } else {
-//                         // యూజర్ ప్రొఫైల్
-//                         return (
-//                              <div key={profileSlot.id} style={styles.profileWrapper}>
-//                                 <button
-//                                     onClick={() => handleProfileClick(profileSlot.name)} // <<< అప్‌డేటెడ్
-//                                     onFocus={() => setFocusedId(profileSlot.id)}
-//                                     onBlur={() => setFocusedId(null)}
-//                                     style={{
-//                                         ...styles.profileButton,
-//                                         ...(isFocused ? styles.focused : {})
-//                                     }}
-//                                 >
-//                                     <img src={profileSlot.image} alt={profileSlot.name} style={styles.imageIcon} />
+//                                     {profileSlot.isAddButton ? (
+//                                         <span style={styles.addIconText}>+</span>
+//                                     ) : (
+//                                         <img src={profileSlot.image} alt={profileSlot.name} style={styles.imageIcon} />
+//                                     )}
 //                                 </button>
 //                                 <p style={styles.profileButtonText}>{profileSlot.name}</p>
 //                             </div>
 //                         );
-//                     }
-//                 })}
+//                     })}
+//                 </div>
+                
+//                 <img src={LOGO_ULKA} alt="Ulka TV" style={styles.logoInCard} />
+                
 //             </div>
-            
-//             <img src={LOGO_ULKA} alt="Ulka TV" style={styles.logoInCard} />
-            
-//             <button onClick={onLogout} style={styles.logoutButton}>
-//                 Logout / Switch Account
-//             </button>
-//         </div>
-//     );
-// };
-
+//         );
+//     };
 
 // // =======================================================
 // // *** LoginScreen COMPONENT (Updated with Keyboard Logic) ***
 // // =======================================================
-// const LoginScreen = () => {
+// const LoginScreen = ({ startAtProfiles = false }) => {
 //     // --- State Management ---
 //     const [username, setUsername] = useState('');
 //     const [password, setPassword] = useState('');
@@ -334,16 +327,15 @@
 //     const [activeInput, setActiveInput] = useState(''); // '' కి మార్చబడింది
 //     const [isCaps, setIsCaps] = useState(false);
 //     const [isSymbol, setIsSymbol] = useState(false);
-
+//     const [focusedId, setFocusedId] = useState('slot-1'); 
 //     const layout = isSymbol ? SYMBOL_LAYOUT : KEYBOARD_LAYOUT;
 //     const [focusKey, setFocusKey] = useState('username'); 
 //     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
-
+//     const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
 //     // API & Navigation State
 //     const [loading, setLoading] = useState(false);
 //     const [apiError, setApiError] = useState('');
 //     const [accessToken, setAccessToken] = useState('');
-//     const [isLoggedIn, setIsLoggedIn] = useState(false); 
 //     const [isCreatingProfile, setIsCreatingProfile] = useState(false); 
     
 //     // *** కొత్త స్టేట్‌లు ***
@@ -370,14 +362,52 @@
 //     const DUMMY_APP_ID = "1";
 //     const DUMMY_IP = "127.0.0.1";
 
-//     useEffect(() => {
+
+//     const profileSlots = [];
+//         profileSlots.push({ id: 'slot-1', name: username, image: AVATAR_DEFAULT });
+//         profiles.slice(0, 3).forEach((p, idx) => {
+//             profileSlots.push({ ...p, id: `slot-${idx + 2}`, image: p.image || AVATAR_LIST[idx] });
+//         });
+//         if (profileSlots.length < 4) {
+//             profileSlots.push({ id: 'slot-add', name: 'Add Profile', isAddButton: true });
+//         }
+
+//       useEffect(() => {
 //         const handleKeyDown = (e) => {
+//             // 1. Home Screen లో ఉంటే ఈ లాజిక్ పని చేయకూడదు
+//             if (isViewingHome) return;
 
-//             // Home or Profile screens లో ignore
-//             if (isViewingHome || isLoggedIn && !isKeyboardVisible) return;
+//             // 2. Profile Screen Navigation (లాగిన్ అయి ఉండి, ప్రొఫైల్స్ చూస్తున్నప్పుడు)
+//             if (isLoggedIn && !isCreatingProfile) {
+//                 // profileSlots డేటాను ఇక్కడ కూడా యాక్సెస్ చేయాలి కాబట్టి 
+//                 // ఈ useEffect బయట profileSlots ని డిఫైన్ చేయడం మంచిది.
+//                 const profileSlotsCount = profiles.length + 1; // మెయిన్ యూజర్ + ఇతర ప్రొఫైల్స్
+//                 const addProfileExists = profileSlotsCount < 4;
+//                 const totalItems = addProfileExists ? profileSlotsCount + 1 : profileSlotsCount;
 
+//                 // ప్రస్తుతం ఏ ప్రొఫైల్ మీద ఉన్నామో ఇండెక్స్ కనుక్కోవడం
+//                 // ఇక్కడ focusedId ని వాడతాము (ProfileScreen లో సెట్ చేసిన స్టేట్)
+//                 const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
+
+//                 switch (e.key) {
+//                     case 'ArrowLeft':
+//                         if (currentIndex > 0) {
+//                             setFocusedId(profileSlots[currentIndex - 1].id);
+//                         }
+//                         break;
+//                     case 'ArrowRight':
+//                         if (currentIndex < profileSlots.length - 1) {
+//                             setFocusedId(profileSlots[currentIndex + 1].id);
+//                         }
+//                         break;
+                
+            
+//                 }
+//                 return; // ప్రొఫైల్ స్క్రీన్ లో ఉన్నప్పుడు కింద ఉన్న లాగిన్ లాజిక్ కి వెళ్ళదు
+//             }
+
+//             // 3. Login Screen & Keyboard Navigation (పాత లాజిక్ కి అప్‌డేట్స్)
 //             switch (e.key) {
-
 //                 case 'ArrowUp':
 //                     if (focusKey === 'password') setFocusKey('username');
 //                     else if (focusKey === 'login_btn') setFocusKey('password');
@@ -402,11 +432,8 @@
 //                     else if (focusKey === 'keyboard') {
 //                         setKbPos(p => ({
 //                             ...p,
-//                             row: Math.min(p.row + 1, KEYBOARD_LAYOUT.length - 1),
-//                             col: Math.min(
-//                                 p.col,
-//                                 KEYBOARD_LAYOUT[Math.min(p.row + 1, KEYBOARD_LAYOUT.length - 1)].length - 1
-//                             )
+//                             row: Math.min(p.row + 1, layout.length - 1),
+//                             col: Math.min(p.col, layout[Math.min(p.row + 1, layout.length - 1)].length - 1)
 //                         }));
 //                     }
 //                     break;
@@ -421,10 +448,7 @@
 //                     if (focusKey === 'keyboard') {
 //                         setKbPos(p => ({
 //                             ...p,
-//                             col: Math.min(
-//                                 p.col + 1,
-//                                 KEYBOARD_LAYOUT[kbPos.row].length - 1
-//                             )
+//                             col: Math.min(p.col + 1, layout[kbPos.row].length - 1)
 //                         }));
 //                     }
 //                     break;
@@ -432,16 +456,12 @@
 //                 case 'Enter':
 //                     handleRemoteEnter();
 //                     break;
-
-//                 default:
-//                     break;
 //             }
 //         };
 
 //         window.addEventListener('keydown', handleKeyDown);
 //         return () => window.removeEventListener('keydown', handleKeyDown);
-//     }, [focusKey, kbPos, isKeyboardVisible]);
-
+//     }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, focusedId, profiles, isCreatingProfile]);
 
 
 //     // 2. రిమోట్ 'Enter' నొక్కినప్పుడు మాత్రమే కీబోర్డ్ ఓపెన్ అవ్వాలి
@@ -497,7 +517,6 @@
 //         handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
 //     }
 //     };
-
 
 
 //     // --- Background Image Rotation Effect (Unchanged) ---
@@ -697,7 +716,9 @@
 //                     onLogout={handleLogout} 
 //                     onCreateProfile={profiles.length < 3 ? () => setIsCreatingProfile(true) : () => alert("Maximum 4 profiles reached.")}
 //                     profiles={profiles}
-//                     onSelectProfile={handleSelectProfileAndNavigate} // <<< కొత్త లాజిక్
+//                     focusedId={focusedId}
+//                     onSelectProfile={handleSelectProfileAndNavigate}
+//                     setFocusedId={setFocusedId}
 //                 />
 //             )}
 
@@ -926,10 +947,6 @@
 // };
 
 // export default LoginScreen;
-
-
-
-
 
 
 // src/components/LoginScreen.jsx - (Updated for HomeScreen integration and INLINE CustomKeyboard)
@@ -1881,7 +1898,4 @@ const LoginScreen = ({ startAtProfiles = false }) => {
 };
 
 export default LoginScreen;
-
-
-
 
