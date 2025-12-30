@@ -485,7 +485,7 @@
 // export default HomeScreen;
 
 
-
+//HomeScreen.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import ShakaPlayer from './ShakaPlayer';
@@ -579,11 +579,17 @@ const HomeScreen = ({ accessToken }) => {
             if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
             if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
             if (e.key === 'ArrowLeft') { setActiveSection('languages'); setFocusedIdx(selectedLang); }
+            // HomeScreen.jsx lo navigation logic daggara
             if (e.key === 'Enter') {
                 const selectedChannel = filteredChannels[focusedIdx];
                 if (selectedChannel) {
-                    setPlayingUrl(selectedChannel.stream_url);
-                    setIsEncrypted(selectedChannel.encryption === 1); // Check for encryption
+                    // Direct IP badhalu proxy prefix use cheyandi
+                    const originalUrl = selectedChannel.stream_url; 
+                    const proxiedUrl = originalUrl.replace('http://10.10.148.25:8081', '/stream-proxy');
+                    
+                    console.log("Playing via Proxy:", proxiedUrl);
+                    setPlayingUrl(proxiedUrl);
+                    setIsEncrypted(selectedChannel.encryption === 1);
                 }
             }
         }
