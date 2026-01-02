@@ -10,7 +10,6 @@ const COLOR_WHITE = '#ffffff';
 const COLOR_BLACK = '#020202ff';
 const LOGO_ULKA = "ulkatv.png";
 
-// మీరు అడిగిన కొత్త ఇమేజ్‌లతో సహా మొత్తం బ్యాక్‌గ్రౌండ్ ఇమేజ్ లిస్ట్
 const CREATE_BG_IMAGES = [
     'city1.jpg',
     'city2.jpg',
@@ -19,12 +18,10 @@ const CREATE_BG_IMAGES = [
 ];
 
 
-// కుడి వైపు స్లైడర్ కోసం కాంపోనెంట్ (ReactJS Web Version)
 const ImageSlider = () => {
   const [index, setIndex] = useState(0);
   
   useEffect(() => {
-    // 4 సెకన్లకు ఒకసారి చిత్రం మారుతుంది
     const intervalId = setInterval(() => {
         setIndex(prevIndex => (prevIndex + 1) % CREATE_BG_IMAGES.length);
     }, 4000); 
@@ -32,7 +29,6 @@ const ImageSlider = () => {
     return () => clearInterval(intervalId);
   }, []);
   
-  // ఇమేజ్ స్లైడర్ యొక్క UI మరియు యానిమేషన్ లాజిక్
   return (
     <div style={styles.rightContainer}>
       {CREATE_BG_IMAGES.map((imageSrc, idx) => (
@@ -42,7 +38,6 @@ const ImageSlider = () => {
             alt={`Background Scene ${idx + 1}`}
             style={{
                 ...styles.animatedImage,
-                // ఇండెక్స్ మారినప్పుడు opacity ను మార్చడం ద్వారా ఫేడ్ ఎఫెక్ట్ వస్తుంది
                 opacity: index === idx ? 1 : 0, 
                 transition: 'opacity 1.5s ease-in-out',
             }}
@@ -53,17 +48,14 @@ const ImageSlider = () => {
   );
 };
 
-// ప్రధాన క్రియేట్ ప్రొఫైల్ స్క్రీన్
 const CreateProfileScreen = ({ username, onGoBack, onSaveProfile }) => {
   const [name, setName] = useState(username || ''); 
   const [age, setAge] = useState('');
   const [gender, setGender] = useState(null);
   const [phone, setPhone] = useState('');
   
-  // --- కొత్తగా జోడించిన స్టేట్: ఫోకస్ కంట్రోల్ కోసం ---
   const [focusKey, setFocusKey] = useState('name'); 
 
-  // రిమోట్ నావిగేషన్ లాజిక్
   useEffect(() => {
     const handleKeyDown = (e) => {
       switch (e.key) {
@@ -99,7 +91,6 @@ const CreateProfileScreen = ({ username, onGoBack, onSaveProfile }) => {
           break;
           
         case 'Backspace':
-          // రిమోట్ బ్యాక్ బటన్ నొక్కితే వెనక్కి వెళ్ళడానికి
           if (name === '' && age === '' && phone === '') onGoBack();
           break;
       }
@@ -131,7 +122,7 @@ const CreateProfileScreen = ({ username, onGoBack, onSaveProfile }) => {
             style={styles.inputText}
             placeholder="Name"
             value={name}
-            readOnly // రిమోట్ కీబోర్డ్ కోసం readOnly పెట్టడం మంచిది (లేదా Custom Keyboard వాడాలి)
+            readOnly
           />
         </div>
 
@@ -201,7 +192,6 @@ const CreateProfileScreen = ({ username, onGoBack, onSaveProfile }) => {
   );
 };
 
-// స్టైల్స్ (CSS-in-JS for React Web) - (మార్పు లేదు)
 const styles = {
   container: { 
       width: '100%',
@@ -226,7 +216,7 @@ const styles = {
     zIndex: 10,
   },
   rightContainer: {
-    flex: 1, // మిగిలిన 65% తీసుకోవడానికి
+    flex: 1,
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
@@ -248,7 +238,6 @@ const styles = {
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 1,
   },
-  // --- మిగిలిన స్టైల్స్ ---
   title: { fontSize: '30px', fontWeight: 700, color: COLOR_WHITE, marginBottom: '30px' },
   inputWrapper: {
     width: '100%',

@@ -949,6 +949,8 @@
 // export default LoginScreen;
 
 
+
+
 // src/components/LoginScreen.jsx - (Updated for HomeScreen integration and INLINE CustomKeyboard)
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
@@ -1072,16 +1074,20 @@ const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
 // *** ProfileScreen COMPONENT (Unchanged) ***
 // =======================================================
 
-const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfile, profiles, onSelectProfile }) => {
+const ProfileScreen = ({ accessToken, onCreateProfile, profiles, onSelectProfile, onLogout }) => {
+    const storedUsername = localStorage.getItem('ulka_username') || "User";
+    
     const MAX_PROFILES = 4;
     const profileSlots = [];
+
     profileSlots.push({ 
         id: 'slot-1', 
-        name: loggedInUsername, 
+        name: storedUsername,
         image: AVATAR_DEFAULT, 
         isFixed: true 
     });
-        profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+
+    profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
         profileSlots.push({ 
             ...p, 
             id: `slot-${idx + 2}`,
@@ -1090,7 +1096,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfil
     });
     
     const isAddSlotAvailable = profileSlots.length < MAX_PROFILES;
-    
     if (isAddSlotAvailable) {
         profileSlots.push({ 
             id: 'slot-add', 
@@ -1100,7 +1105,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfil
     }
 
     const [focusedId, setFocusedId] = useState(profileSlots[0]?.id || null);
-
 
     // --- Arrow Keys Navigation Logic ---
     useEffect(() => {
@@ -1116,7 +1120,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfil
                     setFocusedId(profileSlots[currentIndex - 1].id);
                 }
             } else if (e.key === 'ArrowDown') {
-                // ఒకవేళ కింద Logout బటన్ ఉంటే అక్కడికి వెళ్ళడానికి
                 setFocusedId('logout-btn');
             } else if (e.key === 'ArrowUp') {
                 if (focusedId === 'logout-btn') {
@@ -1131,23 +1134,26 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfil
                 }
             }
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [focusedId, profileSlots]);
 
-    // *** లాజిక్ మార్పు: ఈ ఫంక్షన్ ఇప్పుడు ప్రొఫైల్ పేరును పేరెంట్ కు పంపుతుంది ***
     const handleProfileClick = (profileName) => {
         if (profileName === 'Add Profile') {
             onCreateProfile();
         } else {
-            // ఎంపిక చేసిన ప్రొఫైల్‌తో హోమ్ స్క్రీన్‌కు వెళ్లడానికి కాల్ చేయండి
-            onSelectProfile(profileName); 
+            localStorage.setItem('ulka_username', profileName); 
+            
+
+            const existingToken = localStorage.getItem('ulka_token');
+            if (existingToken) {
+                onSelectProfile(profileName, existingToken); // టోకెన్‌ను కూడా పంపండి
+            } else {
+                onSelectProfile(profileName);
+            }
         }
     };
 
-
-    // Style Definitions for Profile Screen (Unchanged)
     const styles = {
         profileView: {
             display: 'flex',
@@ -1241,7 +1247,6 @@ const ProfileScreen = ({ username: loggedInUsername, accessToken, onCreateProfil
                         return (
                             <div key={profileSlot.id} style={styles.profileWrapper}>
                                 <button
-                                    // మౌస్ మరియు రిమోట్ రెండింటికీ పని చేసేలా
                                     onClick={() => handleProfileClick(profileSlot.name)} 
                                     onFocus={() => setFocusedId(profileSlot.id)}
                                     style={{
@@ -1275,7 +1280,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [activeInput, setActiveInput] = useState(''); // '' కి మార్చబడింది
+    const [activeInput, setActiveInput] = useState('');
     const [isCaps, setIsCaps] = useState(false);
     const [isSymbol, setIsSymbol] = useState(false);
     const [focusedId, setFocusedId] = useState('slot-1'); 
@@ -1283,20 +1288,17 @@ const LoginScreen = ({ startAtProfiles = false }) => {
     const [focusKey, setFocusKey] = useState('username'); 
     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
     const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
-    // API & Navigation State
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState('');
     const [accessToken, setAccessToken] = useState('');
     const [isCreatingProfile, setIsCreatingProfile] = useState(false); 
     
-    // *** కొత్త స్టేట్‌లు ***
     const [isViewingHome, setIsViewingHome] = useState(false); 
     const [selectedProfile, setSelectedProfile] = useState(''); 
 
-    // *** కీబోర్డ్ స్టేట్‌లు ***
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // కీబోర్డ్ చూపించడానికి
-    const [keyboardTarget, setKeyboardTarget] = useState(''); // ఏ ఇన్‌పుట్‌కు కీబోర్డ్ టార్గెట్
-    const keyboardRef = useRef(null); // CustomKeyboard యొక్క పద్ధతులను యాక్సెస్ చేయడానికి
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); 
+    const [keyboardTarget, setKeyboardTarget] = useState(''); 
+    const keyboardRef = useRef(null); 
 
 
     // Profile State (Maximum 3 additional profiles)
@@ -1325,19 +1327,12 @@ const LoginScreen = ({ startAtProfiles = false }) => {
 
       useEffect(() => {
         const handleKeyDown = (e) => {
-            // 1. Home Screen లో ఉంటే ఈ లాజిక్ పని చేయకూడదు
             if (isViewingHome) return;
 
-            // 2. Profile Screen Navigation (లాగిన్ అయి ఉండి, ప్రొఫైల్స్ చూస్తున్నప్పుడు)
             if (isLoggedIn && !isCreatingProfile) {
-                // profileSlots డేటాను ఇక్కడ కూడా యాక్సెస్ చేయాలి కాబట్టి 
-                // ఈ useEffect బయట profileSlots ని డిఫైన్ చేయడం మంచిది.
-                const profileSlotsCount = profiles.length + 1; // మెయిన్ యూజర్ + ఇతర ప్రొఫైల్స్
+                const profileSlotsCount = profiles.length + 1;
                 const addProfileExists = profileSlotsCount < 4;
                 const totalItems = addProfileExists ? profileSlotsCount + 1 : profileSlotsCount;
-
-                // ప్రస్తుతం ఏ ప్రొఫైల్ మీద ఉన్నామో ఇండెక్స్ కనుక్కోవడం
-                // ఇక్కడ focusedId ని వాడతాము (ProfileScreen లో సెట్ చేసిన స్టేట్)
                 const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
 
                 switch (e.key) {
@@ -1354,10 +1349,9 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                 
             
                 }
-                return; // ప్రొఫైల్ స్క్రీన్ లో ఉన్నప్పుడు కింద ఉన్న లాగిన్ లాజిక్ కి వెళ్ళదు
+                return; 
             }
 
-            // 3. Login Screen & Keyboard Navigation (పాత లాజిక్ కి అప్‌డేట్స్)
             switch (e.key) {
                 case 'ArrowUp':
                     if (focusKey === 'password') setFocusKey('username');
@@ -1415,7 +1409,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
     }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, focusedId, profiles, isCreatingProfile]);
 
 
-    // 2. రిమోట్ 'Enter' నొక్కినప్పుడు మాత్రమే కీబోర్డ్ ఓపెన్ అవ్వాలి
     const handleRemoteEnter = () => {
     if (focusKey === 'username' || focusKey === 'password') {
         setKeyboardTarget(focusKey);
@@ -1479,67 +1472,54 @@ const LoginScreen = ({ startAtProfiles = false }) => {
         return () => clearInterval(interval);
     }, []);
 
-    // --- API CALL HANDLER (Updated to hide keyboard) ---
     const handleLogin = async () => {
-        // కీబోర్డ్ ను దాచండి
         setIsKeyboardVisible(false);
         setKeyboardTarget('');
 
-        // **Demo Logic for testing profile screen:**
         if (username === 'omi' && password === '123') {
-             setAccessToken("DUMMY_TOKEN_OMI");
-             setIsLoggedIn(true);
-             setUsername('omi');
-             setProfiles([
-                 { id: 'p2', name: 'Rajini', image: AVATAR_LIST[0] },
-                 { id: 'p3', name: 'Vamsi', image: AVATAR_LIST[1] },
-             ]);
-             setLoading(false);
-             return;
+            const dummyToken = "DUMMY_TOKEN_OMI"; // లేదా అసలు టోకెన్
+            localStorage.setItem('ulka_username', 'omi'); 
+            localStorage.setItem('ulka_token', dummyToken);
+            setAccessToken("DUMMY_TOKEN_OMI");
+            setIsLoggedIn(true);
+            setUsername('omi');
+            setProfiles([
+                { id: 'p2', name: 'Rajini', image: AVATAR_LIST[0] },
+                { id: 'p3', name: 'Vamsi', image: AVATAR_LIST[1] },
+            ]);
+            setLoading(false);
+            return;
         }
-
 
         if (loading) return;
         setApiError('');
         setLoading(true);
 
-        if (!username || !password) {
-            setApiError("Username and Password are required.");
-            setLoading(false);
-            return;
-        }
-        
         const apiBody = {
-            // ... (API బాడీ) ...
-             auth: `username=${username};password=${password};boxid=undefined;appid=${DUMMY_APP_ID};timestamp=${Date.now()}`,
+            auth: `username=${username};password=${password};boxid=undefined;appid=${DUMMY_APP_ID};timestamp=${Date.now()}`,
         };
 
-
         try {
-            const response = await axios.post(
-                'http://202.62.66.121:8080/apiv2/credentials/loginMini', 
-                apiBody
-            );
+            const response = await axios.post('http://202.62.66.115:8080/apiv2/credentials/loginMini', apiBody);
 
             if (response.data?.status_code === 200 && response.data.response_object?.[0]?.access_token) {
                 const token = response.data.response_object[0].access_token;
+                
+                localStorage.setItem('ulka_username', username); 
+                localStorage.setItem('ulka_token', token);
                 setAccessToken(token);
                 setIsLoggedIn(true); 
-                // Set the main user's profile here
-                setProfiles([]); // Clear old profiles upon new login
-                
+                setProfiles([]); 
             } else {
-                setApiError(response.data?.error_description || 'Login failed. Please check credentials.');
+                setApiError(response.data?.error_description || 'Login failed.');
             }
         } catch (error) {
-            console.error("Login API Error:", error);
-            setApiError('Network error, server issue, or invalid API response.');
+            setApiError('Network error occurred.');
         } finally {
             setLoading(false);
         }
     };
-    
-    // Logout Handler (Unchanged)
+    // Logout Handler (Unchanged)   
     const handleLogout = () => {
         setIsLoggedIn(false);
         setUsername('');
@@ -1579,16 +1559,13 @@ const LoginScreen = ({ startAtProfiles = false }) => {
         setIsCreatingProfile(false);
     };
 
-    // *** కొత్త ఫంక్షన్: కీబోర్డ్ ఇన్‌పుట్ హ్యాండిల్ చేయడం ***
     const handleKeyboardKeyPress = (key) => {
         if (key === 'backspace') {
             if (keyboardTarget === 'username') setUsername(prev => prev.slice(0, -1));
             if (keyboardTarget === 'password') setPassword(prev => prev.slice(0, -1));
         } else if (key === 'enter') {
-            // ఎంటర్ ప్రెస్ చేసినప్పుడు లాగిన్ ప్రయత్నించండి
             handleLogin();
         } else {
-            // సాధారణ అక్షరాలు, సంఖ్యలు, లేదా చిహ్నాలు
             if (keyboardTarget === 'username') setUsername(prev => prev + key);
             if (keyboardTarget === 'password') setPassword(prev => prev + key);
         }
@@ -1596,15 +1573,13 @@ const LoginScreen = ({ startAtProfiles = false }) => {
 
     const handleInputFocus = (inputName) => {
         setActiveInput(inputName);
-        setFocusKey(inputName); // ప్రస్తుతం ఏ ఫీల్డ్ మీద ఫోకస్ ఉందో సెట్ చేస్తుంది
+        setFocusKey(inputName);
     };
 
-    // Helper style function for focus effect (Unchanged)
     const getInputBorder = (inputName) => {
         const baseStyle = {
             width: '100%',
             height: '48px', 
-            border: '5px solid',
             backgroundColor: 'rgba(55, 134, 238, 0.1)', 
             border: '5px solid',
             borderRadius: '8px', 
@@ -1641,7 +1616,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
         }}>
             <GlobalInputStyles />
 
-            {/* 1. Home Screen UI */}
             {isViewingHome && isLoggedIn && (
                 <HomeScreen
                     profileName={selectedProfile}
@@ -1650,7 +1624,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                 />
             )}
 
-            {/* 2. ప్రొఫైల్ క్రియేషన్ పేజీ */}
             {isCreatingProfile && (
                 <CreateProfileScreen
                     username={username}
@@ -1659,7 +1632,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                 />
             )}
             
-            {/* 3. ప్రొఫైల్స్ స్క్రీన్ UI */}
             {isLoggedIn && !isCreatingProfile && !isViewingHome && (
                 <ProfileScreen 
                     username={username} 
@@ -1674,7 +1646,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
             )}
 
 
-            {/* 4. లాగిన్ స్క్రీన్ UI */}
             {!isLoggedIn && (
                 <div style={{
                     width: '30%', 
@@ -1696,7 +1667,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                         paddingTop: '100px', 
                         paddingBottom: '8px',
                     }}>
-                        {/* HEADER TEXT (Unchanged) */}
                         <div style={{ width: '100%', textAlign: 'center', marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>THE FUTURE OF</h2>
                             <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>ENTERTAINMENT</h2>
@@ -1708,19 +1678,18 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                             </div>
                         </div>
 
-                        {/* FORM SECTION (Updated for Keyboard) */}
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             {/* USERNAME INPUT */}
                         <div 
                             style={getInputBorder('username')}
-                            onMouseEnter={() => handleInputFocus('username')} // Mouse hover చేసినప్పుడు ఫోకస్
+                            onMouseEnter={() => handleInputFocus('username')}
                         >
                             <input
                                 style={{ flex: 1, backgroundColor: 'transparent', color: COLOR_WHITE, border: 'none', outline: 'none' }}
                                 type="text"
                                 placeholder="Username"
                                 value={username}
-                                onFocus={() => handleInputFocus('username')} // రిమోట్ నావిగేషన్ ఫోకస్
+                                onFocus={() => handleInputFocus('username')}
                                 readOnly={true} 
                             />
                         </div>
@@ -1743,7 +1712,6 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                             </button>
                         </div>
                             
-                            {/* API Error Message */}
                             {apiError && (
                                 <p style={{ color: COLOR_PRIMARY, marginBottom: '10px', fontSize: '14px' }}>
                                     ⚠️ {apiError}
@@ -1753,7 +1721,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                             {/* SIGN IN BUTTON (Unchanged) */}
                             <button
                                 onClick={handleLogin} 
-                                onFocus={() => handleInputFocus('login_btn')} // బటన్ పైకి ఫోకస్ వచ్చినప్పుడు
+                                onFocus={() => handleInputFocus('login_btn')}
                                 style={{
                                     width: '110%',
                                     height: '48px',
@@ -1761,7 +1729,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                                     fontWeight: 'bold',
                                     fontSize: '18px',
                                     marginBottom: '32px',
-                                    backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY, // ఫోకస్ అయినప్పుడు రంగు మారుతుంది
+                                    backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY,
                                     border: focusKey === 'login_btn' ? '4px solid white' : 'none',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
@@ -1811,17 +1779,14 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                 </div>
             )}
             
-
-            {/* 5. రైట్ ప్యానెల్ (యానిమేటెడ్ బ్యాక్‌గ్రౌండ్) - లాగిన్ లేదా ప్రొఫైల్స్ స్క్రీన్‌లో మాత్రమే కనిపించాలి */}
             {!isViewingHome && (
                 <div style={{
                     flex: 1, 
-                    height: '100%', // 70% నుండి 100% కి మార్చబడింది
+                    height: '100%',
                     position: 'relative', 
                     backgroundColor: COLOR_BLACK, 
                     zIndex: 1, 
                 }}>
-                    {/* ... (Background image rotation logic - Unchanged) ... */}
                     <div style={{
                         position: 'absolute',
                         top: 0,
@@ -1836,24 +1801,23 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                             alt="Background Scene 1"
                             style={{
                                 position: 'fixed', 
-                                width: '70%', // 80% నుండి 70% కి మార్చబడింది
+                                width: '70%',
                                 height: '100%',
-                                objectFit: 'contain', // contain నుండి cover కి మార్చబడింది
+                                objectFit: 'contain',
                                 opacity: bgIndex === 0 ? 1 : 0, 
                                 backgroundColor: COLOR_BLACK, 
                                 transition: 'opacity 1s ease-in-out', 
                             }}
                         />
 
-                        {/* BG 2 */}
                         <img 
                             src={backgrounds[1]} 
                             alt="Background Scene 2"
                             style={{
                                 position: 'fixed', 
-                                width: '70%', // 80% నుండి 70% కి మార్చబడింది
+                                width: '70%',
                                 height: '100%',
-                                objectFit: 'contain', // contain నుండి cover కి మార్చబడింది
+                                objectFit: 'contain',
                                 opacity: bgIndex === 1 ? 1 : 0,
                                 backgroundColor: COLOR_BLACK, 
                                 transition: 'opacity 1s ease-in-out', 
@@ -1877,7 +1841,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
             {/* 6. Custom Keyboard Integration */}
             <div style={{
                 position: 'fixed',
-                bottom: isKeyboardVisible ? '250px' : '-500px', // అనిమేషన్ కోసం
+                bottom: isKeyboardVisible ? '250px' : '-500px',
                 left: '260px',
                 right: '0',
                 zIndex: 100,

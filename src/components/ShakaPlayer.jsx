@@ -1,3 +1,4 @@
+// //ShakaPlayer.jsx
 // import React, { useEffect, useRef } from 'react';
 // import shaka from 'shaka-player';
 
@@ -6,29 +7,19 @@
 //     const playerRef = useRef(null);
 
 //     useEffect(() => {
-//         // 1. Install polyfills for browser compatibility
 //         shaka.polyfill.installAll();
 
 //         const initPlayer = async () => {
 //             if (!videoRef.current || !url) return;
 
-//             // 2. Clean up existing player instance
 //             if (playerRef.current) {
-//                 try {
-//                     await playerRef.current.destroy();
-//                 } catch (e) {
-//                     console.error("Error destroying old player", e);
-//                 }
+//                 await playerRef.current.destroy();
 //             }
 
-//             // 3. Create new player
 //             const player = new shaka.Player();
 //             playerRef.current = player;
-            
-//             // 4. Attach to video element
 //             await player.attach(videoRef.current);
 
-//             // 5. DRM Configuration (Only if channel is encrypted)
 //             if (isEncrypted) {
 //                 player.configure({
 //                     drm: {
@@ -38,56 +29,37 @@
 //                         },
 //                         advanced: {
 //                             'com.widevine.alpha': {
-//                                 'videoRobustness': 'SW_SECURE_CRYPTO',
-//                                 'audioRobustness': 'SW_SECURE_CRYPTO'
-//                             },
-//                             'com.microsoft.playready': {
-//                                 'videoRobustness': 'sw'
+//                                 'videoRobustness': ['SW_SECURE_CRYPTO'],
+//                                 'audioRobustness': ['SW_SECURE_CRYPTO']
 //                             }
 //                         }
 //                     }
 //                 });
 
-//                 // 6. Filter to add the Pallycon Token to License Requests
 //                 player.getNetworkingEngine().registerRequestFilter((type, request) => {
 //                     if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
-//                         // This header key is specific to Pallycon DRM
 //                         request.headers['pallycon-customdata-v2'] = drmToken;
-//                         console.log("DRM License Request with Token sent.");
 //                     }
 //                 });
 //             }
 
-//             // 7. Error Listener
-//             player.addEventListener('error', (event) => {
-//                 const error = event.detail;
-//                 console.error('Shaka Error - Code:', error.code, 'Category:', error.category, 'Message:', error.message);
-                
-//                 if (error.code === 6001) {
-//                     console.warn("DRM Error 6001: This usually means you are not on HTTPS or the browser blocks DRM.");
-//                 }
-//             });
-
-//             // 8. Load the stream
 //             try {
 //                 await player.load(url);
-//                 console.log('Success: Stream loaded and playing!');
+//                 console.log("SUCCESS: Playing stream!");
 //             } catch (error) {
-//                 console.error('Load Error:', error.code, error);
+//                 if (error.code === 6001) {
+//                     console.error("DRM Error 6001: Connection is NOT secure. Localhost use.");
+//                 } else {
+//                     console.error('Shaka Load Error:', error.code, error);
+//                 }
 //             }
 //         };
 
-//         if (shaka.Player.isBrowserSupported()) {
-//             initPlayer();
-//         } else {
-//             console.error('Browser not supported for Shaka Player');
-//         }
+//         initPlayer();
 
-//         // Cleanup on unmount
 //         return () => {
 //             if (playerRef.current) {
 //                 playerRef.current.destroy();
-//                 playerRef.current = null;
 //             }
 //         };
 //     }, [url, drmToken, isEncrypted]);
@@ -96,23 +68,177 @@
 //         <video
 //             ref={videoRef}
 //             autoPlay
-//             controls={false} // TV UI kabatti controls false pettali
-//             style={{ 
-//                 width: '100%', 
-//                 height: '100%', 
-//                 backgroundColor: '#000', 
-//                 objectFit: 'contain' 
-//             }}
+//             style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
 //         />
 //     );
 // };
 
 // export default ShakaPlayer;
 
+
+
+// //ShakaPlayer.jsx work ayyindhi
+// import React, { useEffect, useRef } from 'react';
+// import shaka from 'shaka-player';
+
+// const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
+//     const videoRef = useRef(null);
+//     const playerRef = useRef(null);
+
+//     useEffect(() => {
+//         shaka.polyfill.installAll();
+
+//         const initPlayer = async () => {
+//             if (!videoRef.current || !url) return;
+
+//             // Destroy existing player instance before creating new one
+//             if (playerRef.current) {
+//                 await playerRef.current.destroy();
+//             }
+
+//             const player = new shaka.Player();
+//             playerRef.current = player;
+//             await player.attach(videoRef.current);
+
+//             if (isEncrypted && drmToken) {
+//                 player.configure({
+//                     drm: {
+//                         servers: {
+//                             'com.widevine.alpha': 'https://license-global.pallycon.com/ri/licenseManager.do',
+//                             'com.microsoft.playready': 'https://license-global.pallycon.com/ri/licenseManager.do'
+//                         },
+//                         advanced: {
+//                             'com.widevine.alpha': {
+//                                 'videoRobustness': ['SW_SECURE_CRYPTO'],
+//                                 'audioRobustness': ['SW_SECURE_CRYPTO']
+//                             }
+//                         }
+//                     }
+//                 });
+
+//                 // Set Pallycon Token in License Request Header
+//                 player.getNetworkingEngine().registerRequestFilter((type, request) => {
+//                     if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
+//                         request.headers['pallycon-customdata-v2'] = drmToken;
+//                     }
+//                 });
+//             }
+
+//             try {
+//                 await player.load(url);
+//                 console.log("SUCCESS: Playing stream!");
+//             } catch (error) {
+//                 if (error.code === 6001) {
+//                     console.error("DRM Error 6001: Connection is NOT secure (Use HTTPS).");
+//                 } else {
+//                     console.error('Shaka Load Error:', error.code, error);
+//                 }
+//             }
+//         };
+
+//         initPlayer();
+
+//         return () => {
+//             if (playerRef.current) {
+//                 playerRef.current.destroy();
+//             }
+//         };
+//     }, [url, drmToken, isEncrypted]); // Depend on drmToken to update license when channel changes
+
+//     return (
+//         <video
+//             ref={videoRef}
+//             autoPlay
+//             style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
+//         />
+//     );
+// };
+
+// export default ShakaPlayer;
+
+
+// //ShakaPlayer
+// import React, { useEffect, useRef } from 'react';
+// import shaka from 'shaka-player';
+
+// const ShakaPlayer = ({ url, drmToken }) => {
+//   const videoRef = useRef(null);
+//   const playerRef = useRef(null);
+
+//   useEffect(() => {
+//     shaka.polyfill.installAll();
+
+//     const initPlayer = async () => {
+//       if (!videoRef.current || !url) return;
+
+//       if (playerRef.current) {
+//         await playerRef.current.destroy();
+//         playerRef.current = null;
+//       }
+
+//       const video = videoRef.current;
+//       const player = new shaka.Player(video);
+//       playerRef.current = player;
+
+//       // 🔹 Register license header BEFORE load
+//       if (drmToken) {
+//         player.getNetworkingEngine().registerRequestFilter((type, request) => {
+//           if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
+//             request.headers['pallycon-customdata-v2'] = drmToken;
+//           }
+//         });
+
+//         player.configure({
+//           drm: {
+//             servers: {
+//               'com.widevine.alpha':
+//                 'https://license.pallycon.com/ri/licenseManager.do?region=ASIA'
+//             }
+//           }
+//         });
+//       }
+
+//       try {
+//         await player.load(url);
+//         console.log('SUCCESS: Channel Playing!');
+//       } catch (error) {
+//         console.error(
+//           'Shaka Error',
+//           error.code,
+//           error.message || error
+//         );
+//       }
+//     };
+
+//     initPlayer();
+
+//     return () => {
+//       if (playerRef.current) {
+//         playerRef.current.destroy();
+//         playerRef.current = null;
+//       }
+//     };
+//   }, [url, drmToken]);
+
+//   return (
+//     <video
+//       ref={videoRef}
+//       muted           // 🔹 allows autoplay on Chrome
+//       autoPlay
+//       playsInline
+//       style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
+//     />
+//   );
+// };
+
+// export default ShakaPlayer;
+
+
+
 import React, { useEffect, useRef } from 'react';
 import shaka from 'shaka-player';
 
-const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
+const ShakaPlayer = ({ url, drmToken }) => {
     const videoRef = useRef(null);
     const playerRef = useRef(null);
 
@@ -122,31 +248,35 @@ const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
         const initPlayer = async () => {
             if (!videoRef.current || !url) return;
 
-            // Destroy old instance to avoid Error 7000 (Load Interrupted)
+            // 1. Destroy existing player instance
             if (playerRef.current) {
                 await playerRef.current.destroy();
+                playerRef.current = null;
             }
 
-            const player = new shaka.Player();
+            const video = videoRef.current;
+            const player = new shaka.Player(video);
             playerRef.current = player;
-            await player.attach(videoRef.current);
 
-            if (isEncrypted) {
+            // 2. Configure DRM BEFORE loading
+            if (drmToken) {
                 player.configure({
                     drm: {
                         servers: {
+                            // Mee account global URL idi:
                             'com.widevine.alpha': 'https://license-global.pallycon.com/ri/licenseManager.do',
                             'com.microsoft.playready': 'https://license-global.pallycon.com/ri/licenseManager.do'
                         },
                         advanced: {
                             'com.widevine.alpha': {
-                                'videoRobustness': ['SW_SECURE_CRYPTO'],
-                                'audioRobustness': ['SW_SECURE_CRYPTO']
+                                'videoRobustness': [], // Security relax for browsers
+                                'audioRobustness': []
                             }
                         }
                     }
                 });
 
+                // 3. Set Pallycon Token Header
                 player.getNetworkingEngine().registerRequestFilter((type, request) => {
                     if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
                         request.headers['pallycon-customdata-v2'] = drmToken;
@@ -156,13 +286,10 @@ const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
 
             try {
                 await player.load(url);
-                console.log("SUCCESS: Playing stream!");
+                console.log('SUCCESS: Stream is playing!');
             } catch (error) {
-                if (error.code === 6001) {
-                    console.error("DRM Error 6001: Connection is NOT secure. Localhost use cheyyandi or Chrome flags enable cheyyandi.");
-                } else {
-                    console.error('Shaka Load Error:', error.code, error);
-                }
+                // Error 6001 persists? Use chrome://flags to allow insecure origins
+                console.error('Shaka Error Code:', error.code, 'Check console for data');
             }
         };
 
@@ -171,15 +298,18 @@ const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
         return () => {
             if (playerRef.current) {
                 playerRef.current.destroy();
+                playerRef.current = null;
             }
         };
-    }, [url, drmToken, isEncrypted]);
+    }, [url, drmToken]);
 
     return (
         <video
             ref={videoRef}
             autoPlay
-            style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
+            playsInline
+            muted // Autoplay work avvalante initial ga muted undali
+            style={{ width: '100%', height: '100%', backgroundColor: '#000', objectFit: 'contain' }}
         />
     );
 };
