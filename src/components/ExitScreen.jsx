@@ -39,7 +39,7 @@ const ExitScreen = () => {
                 } else {
                     // Logout logic
                     localStorage.removeItem('ulka_token');
-                    navigate('/login');
+                    navigate('/');
                 }
             }
         } else if (e.key === 'Backspace') {
