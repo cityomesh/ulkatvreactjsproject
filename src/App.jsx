@@ -1,89 +1,44 @@
-// // // src/App.jsx
-
-// // import React from 'react';
-// // import LoginScreen from './components/LoginScreen'; // <-- మీ కొత్త ఫైల్
-
-// // function App() {
-// //   return (
-// //     // Tailwind base styles పనిచేయడానికి, బాడీకి పూర్తి స్క్రీన్ క్లాస్‌లు ఉండాలి
-// //     <div className="App min-h-screen"> 
-// //       <LoginScreen />
-// //     </div>
-// //   );
-// // }
-
-// // export default App;
-
-// // src/App.jsx
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import LoginScreen from './components/LoginScreen';
-// import HomeScreen from './components/HomeScreen';
-// import ExitScreen from './components/ExitScreen';
-
-// function App() {
-//   // గమనిక: HomeScreen కి accessToken పంపాలి, ఇక్కడ dummy గా ఇస్తున్నాను
-//   const dummyToken = "your_token_here";
-
-//   return (
-//     <Router>
-//       <div className="App min-h-screen"> 
-//         <Routes>
-//           <Route path="/" element={<LoginScreen />} />
-//           <Route path="/login" element={<LoginScreen />} />
-//           <Route path="/home" element={<HomeScreen accessToken={dummyToken} />} />
-//           <Route path="/exit" element={<ExitScreen />} />
-//           <Route path="/profiles" element={<LoginScreen startAtProfiles={true} />} />
-//         </Routes>
-//       </div>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-
-// //App.jsx
+// //app.js working weel code
 // import React, { useState } from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; // useNavigate యాడ్ చేశా
 // import LoginScreen from './components/LoginScreen';
 // import HomeScreen from './components/HomeScreen';
 // import ExitScreen from './components/ExitScreen';
 
-// function App() {
-// // const [accessToken, setAccessToken] = useState(localStorage.getItem('token'));
-// const [accessToken, setAccessToken] = useState(localStorage.getItem('ulka_token'));
+// function AppContent() {
+//   const navigate = useNavigate();
+//   const [accessToken, setAccessToken] = useState(localStorage.getItem('ulka_token'));
 
 //   const handleLoginSuccess = (token) => {
-//     localStorage.setItem('ulka_token', token); // ఇక్కడ మార్చండి
+//     localStorage.setItem('ulka_token', token);
 //     setAccessToken(token);
+//     navigate('/home'); 
 //   };
 
 //   const handleSelectProfile = (profileName, token) => {
-//     setAccessToken(token); 
-//         console.log("Profile Selected:", profileName);
+//     const activeToken = token || localStorage.getItem('ulka_token');
+//     setAccessToken(activeToken); 
+//     console.log("Profile Selected:", profileName, "Token:", activeToken);
 //     navigate('/home'); 
-// };
+//   };
+
+//   return (
+//     <div className="App min-h-screen"> 
+//       <Routes>
+//         <Route path="/" element={<LoginScreen onLoginSuccess={handleLoginSuccess} onSelectProfile={handleSelectProfile} />} />
+//         <Route path="/login" element={<LoginScreen onLoginSuccess={(token) => setAccessToken(token)} />} />
+//         <Route path="/home" element={<HomeScreen accessToken={accessToken} />} />
+//         <Route path="/exit" element={<ExitScreen />} />
+//         <Route path="/profiles" element={<LoginScreen startAtProfiles={true} onLoginSuccess={handleLoginSuccess} onSelectProfile={handleSelectProfile} />} />
+//       </Routes>
+//     </div>
+//   );
+// }
+
+// function App() {
 //   return (
 //     <Router>
-//       <div className="App min-h-screen"> 
-//         <Routes>
-//           <Route path="/" element={<LoginScreen onLoginSuccess={handleLoginSuccess} />} />
-//           <Route path="/login" element={<LoginScreen onLoginSuccess={handleLoginSuccess} />} />
-          
-//           <Route path="/home" element={<HomeScreen accessToken={accessToken} />} />
-          
-//           <Route path="/exit" element={<ExitScreen />} />
-          
-//           <Route path="/profiles" element={<LoginScreen startAtProfiles={true} onLoginSuccess={handleLoginSuccess} />} />
-//           <Route path="/profiles" element={
-//               <LoginScreen 
-//                   startAtProfiles={true} 
-//                   onSelectProfile={(name) => handleSelectProfile(name, actualToken)} 
-//               />
-//           } />
-//         </Routes>
-//       </div>
+//       <AppContent />
 //     </Router>
 //   );
 // }
@@ -91,16 +46,26 @@
 // export default App;
 
 
-
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; // useNavigate యాడ్ చేశా
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import LoginScreen from './components/LoginScreen';
 import HomeScreen from './components/HomeScreen';
 import ExitScreen from './components/ExitScreen';
+import CreateProfileScreen from './components/CreateProfileScreen';
 
 function AppContent() {
   const navigate = useNavigate();
   const [accessToken, setAccessToken] = useState(localStorage.getItem('ulka_token'));
+  
+  const [profiles, setProfiles] = useState(() => {
+    const saved = localStorage.getItem('ulka_profiles');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem('ulka_token');
+    if (token) setAccessToken(token);
+  }, []);
 
   const handleLoginSuccess = (token) => {
     localStorage.setItem('ulka_token', token);
@@ -115,14 +80,43 @@ function AppContent() {
     navigate('/home'); 
   };
 
+  const handleSaveProfile = (newProfile) => {
+    const updatedProfiles = [...profiles, newProfile];
+    setProfiles(updatedProfiles);
+    localStorage.setItem('ulka_profiles', JSON.stringify(updatedProfiles)); 
+    navigate('/profiles'); 
+  };
+
   return (
     <div className="App min-h-screen"> 
       <Routes>
-        <Route path="/" element={<LoginScreen onLoginSuccess={handleLoginSuccess} onSelectProfile={handleSelectProfile} />} />
-        <Route path="/login" element={<LoginScreen onLoginSuccess={(token) => setAccessToken(token)} />} />
+        <Route path="/" element={
+          <LoginScreen 
+            onLoginSuccess={handleLoginSuccess} 
+            onSelectProfile={handleSelectProfile} 
+            profiles={profiles}
+          />
+        } />
+        
         <Route path="/home" element={<HomeScreen accessToken={accessToken} />} />
+        
         <Route path="/exit" element={<ExitScreen />} />
-        <Route path="/profiles" element={<LoginScreen startAtProfiles={true} onLoginSuccess={handleLoginSuccess} onSelectProfile={handleSelectProfile} />} />
+
+        <Route path="/create-profile" element={
+          <CreateProfileScreen 
+            onGoBack={() => navigate('/profiles')} 
+            onSaveProfile={handleSaveProfile} 
+          />
+        } />
+
+        <Route path="/profiles" element={
+          <LoginScreen 
+            startAtProfiles={true} 
+            onLoginSuccess={handleLoginSuccess} 
+            onSelectProfile={handleSelectProfile} 
+            profiles={profiles}
+          />
+        } />
       </Routes>
     </div>
   );
