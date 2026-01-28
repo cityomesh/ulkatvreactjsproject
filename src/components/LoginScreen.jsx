@@ -1727,7 +1727,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                         </div>
 
                         {/* LOGO (Unchanged) */}
-                        <img src={LOGO_ULKA} alt="Company Logo" style={{ width: '400px', marginTop: 'auto', paddingBottom: '200px' }} />
+                        <img src={LOGO_ULKA} alt="Company Logo" style={{ width: '400px' }} />
                     </div>
                 </div>
             )}
