@@ -638,16 +638,17 @@ const HomeScreen = ({ accessToken }) => {
 
         if (currentContainer && currentContainer.children[focusedIdx]) {
             const el = currentContainer.children[focusedIdx];
-            const containerTop = currentContainer.scrollTop;
             const containerHeight = currentContainer.clientHeight;
             const elTop = el.offsetTop;
             const elHeight = el.offsetHeight;
 
-            if (elTop < containerTop) {
-                currentContainer.scrollTop = elTop;
-            } else if (elTop + elHeight > containerTop + containerHeight) {
-                currentContainer.scrollTop = elTop + elHeight - containerHeight;
-            }
+            // Center the focused element vertically
+            const scrollTo = elTop - containerHeight / 2 + elHeight / 2;
+
+            currentContainer.scrollTo({
+                top: scrollTo,
+                behavior: 'smooth'
+            });
         }
     }, [focusedIdx, activeSection]);
 
