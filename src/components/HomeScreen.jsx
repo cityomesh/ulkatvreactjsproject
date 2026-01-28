@@ -336,63 +336,53 @@
 //         fetchChannels();
 //     }, [accessToken, updateFilteredList]);
 
-//     // --- Automatic Scrolling Logic ---
 //     useEffect(() => {
-//         let activeRef = null;
-//         if (activeSection === 'categories') activeRef = catRef;
-//         else if (activeSection === 'languages') activeRef = langRef;
-//         else if (activeSection === 'channels') activeRef = chanRef;
-
-//         if (activeRef && activeRef.current && activeRef.current.children[focusedIdx]) {
-//             activeRef.current.children[focusedIdx].scrollIntoView({
-//                 behavior: 'smooth',
-//                 block: 'center',
-//             });
+//         const targetRef = activeSection === 'categories' ? catRef : activeSection === 'languages' ? langRef : chanRef;
+//         if (targetRef.current && targetRef.current.children[focusedIdx]) {
+//             targetRef.current.children[focusedIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
 //         }
 //     }, [focusedIdx, activeSection]);
 
 //     const handleKeyDown = useCallback((e) => {
-//         const keyCode = e.keyCode; // Remote numerical code (37, 38, 39, 40 etc)
-
-//         // Back Button Logic
-//         if (keyCode === 8 || keyCode === 27) {
-//             e.preventDefault();
-//             if (isFullScreen) {
+//         if (isFullScreen) {
+//             if (e.key === 'Backspace' || e.key === 'Escape') {
+//                 e.preventDefault();
 //                 setIsFullScreen(false);
-//             } else {
-//                 window.location.href = '/exit';
 //             }
 //             return;
 //         }
 
-//         if (isFullScreen) return;
+//         if (e.key === 'Backspace' || e.key === 'Escape') {
+//             e.preventDefault();
+//             window.location.href = '/exit'; 
+//             return;
+//         }
 
-//         // Navigation Logic
 //         if (activeSection === 'categories') {
-//             if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, CATEGORIES.length - 1)); // Down
-//             if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0)); // Up
-//             if (keyCode === 39) { setActiveSection('languages'); setFocusedIdx(selectedLang); } // Right
-//             if (keyCode === 13) { // Enter
+//             if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, CATEGORIES.length - 1));
+//             if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+//             if (e.key === 'ArrowRight') { setActiveSection('languages'); setFocusedIdx(selectedLang); }
+//             if (e.key === 'Enter') {
 //                 setSelectedCat(focusedIdx);
 //                 updateFilteredList(allChannels, focusedIdx, selectedLang);
 //             }
 //         } 
 //         else if (activeSection === 'languages') {
-//             if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, LANGUAGES.length - 1));
-//             if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-//             if (keyCode === 37) { setActiveSection('categories'); setFocusedIdx(selectedCat); } // Left
-//             if (keyCode === 39) { setActiveSection('channels'); setFocusedIdx(0); } // Right
-//             if (keyCode === 13) {
+//             if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, LANGUAGES.length - 1));
+//             if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+//             if (e.key === 'ArrowLeft') { setActiveSection('categories'); setFocusedIdx(selectedCat); }
+//             if (e.key === 'ArrowRight') { setActiveSection('channels'); setFocusedIdx(0); }
+//             if (e.key === 'Enter') {
 //                 setSelectedLang(focusedIdx);
 //                 updateFilteredList(allChannels, selectedCat, focusedIdx);
 //             }
 //         }
 //         else if (activeSection === 'channels') {
-//             if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
-//             if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-//             if (keyCode === 37) { setActiveSection('languages'); setFocusedIdx(selectedLang); }
-//             if (keyCode === 39) { setActiveSection('player'); }
-//             if (keyCode === 13 && filteredChannels[focusedIdx]) {
+//             if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
+//             if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+//             if (e.key === 'ArrowLeft') { setActiveSection('languages'); setFocusedIdx(selectedLang); }
+//             if (e.key === 'ArrowRight') { setActiveSection('player'); }
+//             if (e.key === 'Enter' && filteredChannels[focusedIdx]) {
 //                 const target = filteredChannels[focusedIdx];
 //                 getPallyTokenFromNetwork(target.encryption_url).then((res) => {
 //                     setDrmTokenUpdate(res.response_object[0].base64Token);
@@ -401,8 +391,8 @@
 //             }
 //         }
 //         else if (activeSection === 'player') {
-//             if (keyCode === 37) { setActiveSection('channels'); setFocusedIdx(0); }
-//             if (keyCode === 13 && playingUrl) setIsFullScreen(true);
+//             if (e.key === 'ArrowLeft') { setActiveSection('channels'); setFocusedIdx(0); }
+//             if (e.key === 'Enter' && playingUrl) setIsFullScreen(true);
 //         }
 //     }, [activeSection, focusedIdx, filteredChannels, allChannels, selectedCat, selectedLang, updateFilteredList, isFullScreen, playingUrl]);
 
@@ -413,51 +403,64 @@
 
 //     const currentHover = (activeSection === 'channels' || activeSection === 'player') ? (filteredChannels[focusedIdx] || filteredChannels[0]) : (filteredChannels[0] || {});
 
-//     // --- STYLES ---
+//     // --- ENHANCED TV STYLES ---
 //     const headerBaseStyle = {
-//         backgroundColor: '#FFFAE0', color: '#000', height: '50px',
+//         backgroundColor: '#FFFAE0', color: '#000', height: '55px',
 //         display: 'flex', alignItems: 'center', justifyContent: 'center',
-//         fontSize: '20px', fontWeight: '900', borderRadius: '4px'
+//         fontSize: '20px', fontWeight: '900', borderRadius: '4px', textTransform: 'uppercase',
+//         boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
 //     };
 
 //     const styles = {
 //         container: { 
 //             width: '100vw', height: '100vh', backgroundColor: '#000', color: '#fff', 
-//             display: 'flex', padding: '30px', boxSizing: 'border-box', overflow: 'hidden', gap: '15px' 
+//             display: 'flex', padding: '40px 30px', boxSizing: 'border-box', overflow: 'hidden', gap: '20px' 
 //         },
-//         sidebarColumn: { display: 'flex', flexDirection: 'column', backgroundColor: '#080808', gap: '10px', height: '100%', borderRadius: '8px' },
-//         scrollArea: { flex: 1, overflowY: 'hidden', padding: '10px', scrollBehavior: 'smooth' },
+//         sidebarColumn: { display: 'flex', flexDirection: 'column', backgroundColor: '#080808', gap: '10px', height: '100%', borderRadius: '8px', border: '1px solid #1a1a1a' },
+//         scrollArea: { flex: 1, overflowY: 'hidden', padding: '10px 15px', scrollBehavior: 'smooth' },
 //         sidebarItem: (isFocused, isSelected) => ({
-//             padding: '12px', marginBottom: '10px', borderRadius: '6px', textAlign: 'center',
+//             padding: '14px 10px', marginBottom: '12px', borderRadius: '6px', textAlign: 'center',
 //             border: isFocused ? '4px solid #f00' : '2px solid transparent',
-//             backgroundColor: isSelected ? '#333' : 'transparent',
-//             color: isFocused ? '#f00' : '#fff', fontSize: '18px', fontWeight: 'bold'
+//             backgroundColor: isSelected ? '#2a2a2a' : (isFocused ? '#1a1a1a' : 'transparent'),
+//             color: isFocused ? '#f00' : (isSelected ? '#00D1FF' : '#fff'), 
+//             fontSize: '19px', fontWeight: 'bold', transition: 'all 0.2s'
 //         }),
 //         channelBox: (isFocused) => ({
-//             height: '90px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+//             height: '86px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center',
 //             borderRadius: '8px', backgroundColor: '#111', border: isFocused ? '4px solid #f00' : '',
 //             transform: isFocused ? 'scale(1.15)' : 'scale(1)', zIndex: isFocused ? 10 : 1, transition: 'all 0.2s'
 //         }),
-//         rightPanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' },
+
+//         rightPanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '15px', height: '100%' },
 //         playerWrapper: (isFocused) => ({
 //             flex: 1, backgroundColor: '#000', borderRadius: '10px', 
 //             border: isFocused ? '5px solid #00D1FF' : '2px solid #222',
-//             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
+//             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+//             boxShadow: isFocused ? '0 0 20px rgba(0, 209, 255, 0.4)' : 'none'
 //         }),
 //         fullScreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 9999 }
 //     };
 
 //     if (isFullScreen && playingUrl) {
-//         return <div style={styles.fullScreen}><ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate} /></div>;
+//         return (
+//             <div style={styles.fullScreen}>
+//                 <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate} />
+//             </div>
+//         );
 //     }
 
 //     return (
 //         <div style={styles.container}>
-//             <style>{` ::-webkit-scrollbar { display: none; } @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } `}</style>
+//             <style>{`
+//                 * { box-sizing: border-box; }
+//                 ::-webkit-scrollbar { display: none; }
+//                 @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+//             `}</style>
 
+//             {/* Combined Sidebar Layout for better alignment */}
 //             <div style={{ display: 'flex', gap: '12px', height: '100%' }}>
-//                 <div style={{ ...styles.sidebarColumn, width: '220px' }}>
-//                     <div style={headerBaseStyle}>CATEGORIES</div>
+//                 <div style={{ ...styles.sidebarColumn, width: '230px' }}>
+//                     <div style={headerBaseStyle}>Categories</div>
 //                     <div style={styles.scrollArea} ref={catRef}>
 //                         {CATEGORIES.map((cat, i) => (
 //                             <div key={i} style={styles.sidebarItem(activeSection === 'categories' && focusedIdx === i, selectedCat === i)}>{cat.name}</div>
@@ -465,8 +468,8 @@
 //                     </div>
 //                 </div>
 
-//                 <div style={{ ...styles.sidebarColumn, width: '220px' }}>
-//                     <div style={headerBaseStyle}>LANGUAGES</div>
+//                 <div style={{ ...styles.sidebarColumn, width: '230px' }}>
+//                     <div style={headerBaseStyle}>Languages</div>
 //                     <div style={styles.scrollArea} ref={langRef}>
 //                         {LANGUAGES.map((lang, i) => (
 //                             <div key={i} style={styles.sidebarItem(activeSection === 'languages' && focusedIdx === i, selectedLang === i)}>{lang.name}</div>
@@ -475,7 +478,7 @@
 //                 </div>
 
 //                 <div style={{ ...styles.sidebarColumn, width: '180px' }}>
-//                     <div style={headerBaseStyle}>CHANNELS</div>
+//                     <div style={headerBaseStyle}>Channels</div>
 //                     <div style={styles.scrollArea} ref={chanRef}>
 //                         {filteredChannels.map((ch, i) => (
 //                             <div key={ch.id} style={styles.channelBox(activeSection === 'channels' && focusedIdx === i)}>
@@ -486,288 +489,42 @@
 //                 </div>
 //             </div>
 
+//             {/* Right Side Control Panel */}
 //             <div style={styles.rightPanel}>
-//                 <div style={{ display: 'flex', gap: '10px' }}>
-//                     <div style={{ ...headerBaseStyle, width: '70px' }}>{currentHover?.channel_number || '--'}</div>
-//                     <div style={{ ...headerBaseStyle, flex: 1 }}>{currentHover?.title || 'SELECT'}</div>
-//                     <div style={{ ...headerBaseStyle, width: '300px', backgroundColor: '#200', border: '1px solid red', overflow: 'hidden' }}>
-//                         <div style={{ color: '#fff', whiteSpace: 'nowrap', animation: 'marquee 15s linear infinite' }}>ULKA TV LIVE • OK FOR FULLSCREEN •</div>
+//                 <div style={{ display: 'flex', gap: '12px' }}>
+//                     <div style={{ ...headerBaseStyle, width: '80px' }}>{currentHover?.channel_number || '---'}</div>
+//                     <div style={{ ...headerBaseStyle, flex: 1, padding: '0 15px' }}>{currentHover?.title || 'SELECT CHANNEL'}</div>
+//                     <div style={{ ...headerBaseStyle, width: '350px', backgroundColor: '#1a0000', border: '2px solid #f00', overflow: 'hidden' }}>
+//                         <div style={{ color: '#FFFAE0', whiteSpace: 'nowrap', animation: 'marquee 12s linear infinite', fontSize: '18px' }}>
+//                              • OK for Full Screen • Use Remote Arrows to Navigate • Enjoy ULKA TV Live •
+//                         </div>
 //                     </div>
 //                 </div>
 
-//                 <div style={{ display: 'flex', gap: '10px' }}>
+//                 {/* EPG / Program Slots */}
+//                 <div style={{ display: 'flex', gap: '12px' }}>
 //                     {[1, 2, 3].map(n => (
-//                         <div key={n} style={{ flex: 1, height: '70px', backgroundColor: '#111', borderRadius: '4px', border: '1px solid #333', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Program {n}</div>
+//                         <div key={n} style={{ flex: 1, height: '75px', backgroundColor: '#121212', borderRadius: '6px', border: '1px solid #333', color: '#aaa', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
+//                             <span style={{color: '#666', fontSize: '12px'}}>UPCOMING</span>
+//                             <strong>Program {n}</strong>
+//                         </div>
 //                     ))}
 //                 </div>
 
-//                 <div style={styles.playerWrapper(activeSection === 'player')}>
-//                     {playingUrl ? <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate}/> : <h2 style={{color: '#00D1FF'}}>SELECT CHANNEL</h2>}
-//                 </div>
-
-//                 <div style={{ height: '100px', backgroundColor: '#00D1FF', borderRadius: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', fontWeight: 'bold' }}>ADVERTISEMENT</div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default HomeScreen;
-
-
-
-// import React, { useState, useEffect, useCallback, useRef } from 'react';
-// import axios from 'axios';
-// import ShakaPlayer from './ShakaPlayer';
-// import { getPallyTokenFromNetwork } from './api.js';
-
-// const API_HOST = 'http://202.62.66.115:8080';
-// const CHANNELS_ENDPOINT = '/apiv2/channels/list';
-
-// const LANGUAGES = [
-//     { name: "Telugu", id: 3 }, { name: "Hindi", id: 1 }, { name: "English", id: 2 }, 
-//     { name: "Tamil", id: 4 }, { name: "Kannada", id: 5 }, { name: "Malayalam", id: 6 },
-//     { name: "Marathi", id: 7 }, { name: "Bengali", id: 8 }, { name: "Gujarati", id: 9 },
-//     { name: "Punjabi", id: 10 }, { name: "Odia", id: 11 }, { name: "Assamese", id: 25 },
-//     { name: "Bhojpuri", id: 26 }, { name: "Urdu", id: 27 }, { name: "SPORTS", id: 28 }
-// ];
-
-// const CATEGORIES = [
-//     { name: "Entertainment", id: 3 }, { name: "News", id: 1 }, { name: "Movies", id: 4 },
-//     { name: "Music", id: 5 }, { name: "Spiritual", id: 6 }, { name: "Sports", id: 7 },
-//     { name: "Shopping", id: 8 }, { name: "LifeStyle", id: 9 }, { name: "Infotainment", id: 10 },
-//     { name: "Comedy", id: 11 }, { name: "Kids", id: 12 }, { name: "Local Channels", id: 13 }
-// ];
-
-// const HomeScreen = ({ accessToken }) => {
-//     const [allChannels, setAllChannels] = useState([]);
-//     const [filteredChannels, setFilteredChannels] = useState([]);
-//     const [activeSection, setActiveSection] = useState('categories');
-//     const [focusedIdx, setFocusedIdx] = useState(0);
-//     const [selectedCat, setSelectedCat] = useState(0); 
-//     const [selectedLang, setSelectedLang] = useState(0); 
-//     const [playingUrl, setPlayingUrl] = useState('');
-//     const [isFullScreen, setIsFullScreen] = useState(false);
-//     const [drmTokenUpdate, setDrmTokenUpdate] = useState('');
-
-//     const catRef = useRef(null);
-//     const langRef = useRef(null);
-//     const chanRef = useRef(null);
-
-//     const updateFilteredList = useCallback((channels, cIdx, lIdx) => {
-//         if (!channels || channels.length === 0) return;
-//         const cId = CATEGORIES[cIdx].id;
-//         const lId = LANGUAGES[lIdx].id;
-//         const filtered = channels.filter(ch => ch.subgenre_id === cId && ch.genre_id === lId);
-//         setFilteredChannels(filtered);
-//     }, []);
-
-//     useEffect(() => {
-//         const fetchChannels = async () => {
-//             const currentToken = accessToken || localStorage.getItem('ulka_token');
-//             if (!currentToken) return;
-//             try {
-//                 const response = await axios.post(`${API_HOST}${CHANNELS_ENDPOINT}`, { auth: currentToken });
-//                 if (response.data.status_code === 200) {
-//                     const data = response.data.response_object;
-//                     setAllChannels(data);
-//                     updateFilteredList(data, 0, 0);
-//                 }
-//             } catch (err) { console.error("API Error:", err); }
-//         };
-//         fetchChannels();
-//     }, [accessToken, updateFilteredList]);
-
-//     // --- CRITICAL TV SCROLL LOGIC ---
-//     useEffect(() => {
-//         const targetRef = activeSection === 'categories' ? catRef : 
-//                           activeSection === 'languages' ? langRef : chanRef;
-        
-//         if (targetRef.current && targetRef.current.children[focusedIdx]) {
-//             targetRef.current.children[focusedIdx].scrollIntoView({ 
-//                 behavior: 'smooth', 
-//                 block: 'center', // Keeps focused item in the middle of the sidebar
-//                 inline: 'nearest' 
-//             });
-//         }
-//     }, [focusedIdx, activeSection]);
-
-//     const handleKeyDown = useCallback((e) => {
-//         const keyCode = e.keyCode; // Using numerical codes from your C++ mapping
-
-//         if (isFullScreen) {
-//             if (keyCode === 8 || keyCode === 27) { // Backspace or Esc
-//                 e.preventDefault();
-//                 setIsFullScreen(false);
-//             }
-//             return;
-//         }
-
-//         if (keyCode === 8 || keyCode === 27) {
-//             e.preventDefault();
-//             window.location.href = '/exit'; 
-//             return;
-//         }
-
-//         // Navigation Switch
-//         switch(activeSection) {
-//             case 'categories':
-//                 if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, CATEGORIES.length - 1));
-//                 if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-//                 if (keyCode === 39) { setActiveSection('languages'); setFocusedIdx(selectedLang); }
-//                 if (keyCode === 13) {
-//                     setSelectedCat(focusedIdx);
-//                     updateFilteredList(allChannels, focusedIdx, selectedLang);
-//                 }
-//                 break;
-//             case 'languages':
-//                 if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, LANGUAGES.length - 1));
-//                 if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-//                 if (keyCode === 37) { setActiveSection('categories'); setFocusedIdx(selectedCat); }
-//                 if (keyCode === 39) { setActiveSection('channels'); setFocusedIdx(0); }
-//                 if (keyCode === 13) {
-//                     setSelectedLang(focusedIdx);
-//                     updateFilteredList(allChannels, selectedCat, focusedIdx);
-//                 }
-//                 break;
-//             case 'channels':
-//                 if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
-//                 if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-//                 if (keyCode === 37) { setActiveSection('languages'); setFocusedIdx(selectedLang); }
-//                 if (keyCode === 39) { setActiveSection('player'); }
-//                 if (keyCode === 13 && filteredChannels[focusedIdx]) {
-//                     const target = filteredChannels[focusedIdx];
-//                     getPallyTokenFromNetwork(target.encryption_url).then((res) => {
-//                         setDrmTokenUpdate(res.response_object[0].base64Token);
-//                         setPlayingUrl(target.stream_url);
-//                     });
-//                 }
-//                 break;
-//             case 'player':
-//                 if (keyCode === 37) { setActiveSection('channels'); setFocusedIdx(0); }
-//                 if (keyCode === 13 && playingUrl) setIsFullScreen(true);
-//                 break;
-//             default: break;
-//         }
-//     }, [activeSection, focusedIdx, filteredChannels, allChannels, selectedCat, selectedLang, updateFilteredList, isFullScreen, playingUrl]);
-
-//     useEffect(() => {
-//         window.addEventListener('keydown', handleKeyDown);
-//         return () => window.removeEventListener('keydown', handleKeyDown);
-//     }, [handleKeyDown]);
-
-//     const currentHover = (activeSection === 'channels' || activeSection === 'player') ? (filteredChannels[focusedIdx] || filteredChannels[0]) : (filteredChannels[0] || {});
-
-//     // --- TV FIX STYLES ---
-//     const headerBaseStyle = {
-//         backgroundColor: '#FFFAE0', color: '#000', height: '50px',
-//         display: 'flex', alignItems: 'center', justifyContent: 'center',
-//         fontSize: '20px', fontWeight: '900', borderRadius: '4px', flexShrink: 0
-//     };
-
-//     const styles = {
-//         container: { 
-//             width: '100vw', height: '100vh', backgroundColor: '#000', color: '#fff', 
-//             display: 'flex', padding: '25px', boxSizing: 'border-box', overflow: 'hidden', gap: '15px' 
-//         },
-//         sidebarColumn: { 
-//             display: 'flex', flexDirection: 'column', backgroundColor: '#080808', 
-//             height: '100%', borderRadius: '8px', border: '1px solid #1a1a1a', flexShrink: 0 
-//         },
-//         // Overflow hidden is key for TV scroll control
-//         scrollArea: { 
-//             flex: 1, overflowY: 'hidden', padding: '10px', 
-//             display: 'flex', flexDirection: 'column' 
-//         },
-//         sidebarItem: (isFocused, isSelected) => ({
-//             padding: '14px 10px', marginBottom: '10px', borderRadius: '6px', textAlign: 'center',
-//             border: isFocused ? '4px solid #f00' : '2px solid transparent',
-//             backgroundColor: isSelected ? '#2a2a2a' : (isFocused ? '#1a1a1a' : 'transparent'),
-//             color: isFocused ? '#f00' : (isSelected ? '#00D1FF' : '#fff'), 
-//             fontSize: '19px', fontWeight: 'bold', flexShrink: 0
-//         }),
-//         channelBox: (isFocused) => ({
-//             height: '85px', minHeight: '85px', marginBottom: '15px', display: 'flex', 
-//             alignItems: 'center', justifyContent: 'center', borderRadius: '8px', 
-//             backgroundColor: '#111', border: isFocused ? '4px solid #f00' : '2px solid transparent',
-//             transform: isFocused ? 'scale(1.1)' : 'scale(1)', transition: 'all 0.1s', flexShrink: 0
-//         }),
-//         rightPanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', minWidth: 0 },
-//         playerWrapper: (isFocused) => ({
-//             flex: 1, backgroundColor: '#000', borderRadius: '10px', 
-//             border: isFocused ? '5px solid #00D1FF' : '2px solid #222',
-//             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
-//         }),
-//         fullScreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 9999 }
-//     };
-
-//     if (isFullScreen && playingUrl) {
-//         return <div style={styles.fullScreen}><ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate} /></div>;
-//     }
-
-//     return (
-//         <div style={styles.container}>
-//             <style>{` ::-webkit-scrollbar { display: none; } `}</style>
-
-//             {/* Navigation Panels */}
-//             <div style={{ display: 'flex', gap: '12px', height: '100%', flexShrink: 0 }}>
-//                 <div style={{ ...styles.sidebarColumn, width: '210px' }}>
-//                     <div style={headerBaseStyle}>CATEGORIES</div>
-//                     <div style={styles.scrollArea} ref={catRef}>
-//                         {CATEGORIES.map((cat, i) => (
-//                             <div key={i} style={styles.sidebarItem(activeSection === 'categories' && focusedIdx === i, selectedCat === i)}>{cat.name}</div>
-//                         ))}
-//                     </div>
-//                 </div>
-
-//                 <div style={{ ...styles.sidebarColumn, width: '210px' }}>
-//                     <div style={headerBaseStyle}>LANGUAGES</div>
-//                     <div style={styles.scrollArea} ref={langRef}>
-//                         {LANGUAGES.map((lang, i) => (
-//                             <div key={i} style={styles.sidebarItem(activeSection === 'languages' && focusedIdx === i, selectedLang === i)}>{lang.name}</div>
-//                         ))}
-//                     </div>
-//                 </div>
-
-//                 <div style={{ ...styles.sidebarColumn, width: '170px' }}>
-//                     <div style={headerBaseStyle}>CHANNELS</div>
-//                     <div style={styles.scrollArea} ref={chanRef}>
-//                         {filteredChannels.map((ch, i) => (
-//                             <div key={ch.id} style={styles.channelBox(activeSection === 'channels' && focusedIdx === i)}>
-//                                 <img src={ch.icon_url} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-//                             </div>
-//                         ))}
-//                     </div>
-//                 </div>
-//             </div>
-
-//             {/* Right Side Control & Player */}
-//             <div style={styles.rightPanel}>
-//                 <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-//                     <div style={{ ...headerBaseStyle, width: '70px' }}>{currentHover?.channel_number || '--'}</div>
-//                     <div style={{ ...headerBaseStyle, flex: 1, padding: '0 10px', justifyContent: 'flex-start' }}>{currentHover?.title || 'SELECT CHANNEL'}</div>
-//                     <div style={{ ...headerBaseStyle, width: '280px', backgroundColor: '#1a0000', border: '2px solid #f00', color: '#fff', fontSize: '16px' }}>
-//                         LIVE ULKA TV
-//                     </div>
-//                 </div>
-
-//                 <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
-//                     {[1, 2, 3].map(n => (
-//                         <div key={n} style={{ flex: 1, height: '65px', backgroundColor: '#111', borderRadius: '4px', border: '1px solid #333', color: '#777', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Program {n}</div>
-//                     ))}
-//                 </div>
-
+//                 {/* Live Player Preview */}
 //                 <div style={styles.playerWrapper(activeSection === 'player')}>
 //                     {playingUrl ? (
 //                         <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate}/>
 //                     ) : (
-//                         <div style={{ textAlign: 'center' }}>
-//                             {currentHover?.icon_url && <img src={currentHover.icon_url} alt="" style={{ height: '120px', marginBottom: '15px', opacity: 0.6 }} />}
-//                             <h2 style={{ color: '#00D1FF' }}>PRESS OK TO PLAY</h2>
+//                         <div style={{ textAlign: 'center', padding: '20px' }}>
+//                             {currentHover?.icon_url && <img src={currentHover.icon_url} alt="" style={{ height: '160px', marginBottom: '20px', filter: 'drop-shadow(0 0 10px #333)' }} />}
+//                             <h2 style={{ fontSize: '26px', color: '#00D1FF', letterSpacing: '1.5px' }}>PRESS OK TO WATCH LIVE</h2>
 //                         </div>
 //                     )}
 //                 </div>
 
-//                 <div style={{ height: '90px', backgroundColor: '#00D1FF', borderRadius: '8px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 'bold', flexShrink: 0 }}>
+//                 {/* Promo/Ad Banner */}
+//                 <div style={{ height: '100px', backgroundColor: '#00D1FF', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '38px', fontWeight: '900', letterSpacing: '2px', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.2)' }}>
 //                     ULKA TV ADVERTISEMENT
 //                 </div>
 //             </div>
@@ -776,10 +533,6 @@
 // };
 
 // export default HomeScreen;
-
-
-
-
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
@@ -843,59 +596,72 @@ const HomeScreen = ({ accessToken }) => {
         fetchChannels();
     }, [accessToken, updateFilteredList]);
 
+    // --- AUTO-SCROLL LOGIC (Center Focus) ---
     useEffect(() => {
-        const targetRef = activeSection === 'categories' ? catRef : 
-                          activeSection === 'languages' ? langRef : chanRef;
-        
-        if (targetRef.current && targetRef.current.children[focusedIdx]) {
-            targetRef.current.children[focusedIdx].scrollIntoView({ 
-                behavior: 'smooth', 
+        let currentContainer = null;
+        if (activeSection === 'categories') currentContainer = catRef.current;
+        if (activeSection === 'languages') currentContainer = langRef.current;
+        if (activeSection === 'channels') currentContainer = chanRef.current;
+
+        if (currentContainer && currentContainer.children[focusedIdx]) {
+            currentContainer.children[focusedIdx].scrollIntoView({
+                behavior: 'smooth',
                 block: 'center', 
-                inline: 'nearest' 
+                inline: 'nearest'
             });
         }
     }, [focusedIdx, activeSection]);
 
     const handleKeyDown = useCallback((e) => {
-        const keyCode = e.keyCode;
         if (isFullScreen) {
-            if (keyCode === 8 || keyCode === 27) { e.preventDefault(); setIsFullScreen(false); }
+            if (e.key === 'Backspace' || e.key === 'Escape') {
+                e.preventDefault();
+                setIsFullScreen(false);
+            }
             return;
         }
-        if (keyCode === 8 || keyCode === 27) { e.preventDefault(); window.location.href = '/exit'; return; }
 
-        switch(activeSection) {
-            case 'categories':
-                if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, CATEGORIES.length - 1));
-                if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-                if (keyCode === 39) { setActiveSection('languages'); setFocusedIdx(selectedLang); }
-                if (keyCode === 13) { setSelectedCat(focusedIdx); updateFilteredList(allChannels, focusedIdx, selectedLang); }
-                break;
-            case 'languages':
-                if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, LANGUAGES.length - 1));
-                if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-                if (keyCode === 37) { setActiveSection('categories'); setFocusedIdx(selectedCat); }
-                if (keyCode === 39) { setActiveSection('channels'); setFocusedIdx(0); }
-                if (keyCode === 13) { setSelectedLang(focusedIdx); updateFilteredList(allChannels, selectedCat, focusedIdx); }
-                break;
-            case 'channels':
-                if (keyCode === 40) setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
-                if (keyCode === 38) setFocusedIdx(p => Math.max(p - 1, 0));
-                if (keyCode === 37) { setActiveSection('languages'); setFocusedIdx(selectedLang); }
-                if (keyCode === 39) { setActiveSection('player'); }
-                if (keyCode === 13 && filteredChannels[focusedIdx]) {
-                    const target = filteredChannels[focusedIdx];
-                    getPallyTokenFromNetwork(target.encryption_url).then((res) => {
-                        setDrmTokenUpdate(res.response_object[0].base64Token);
-                        setPlayingUrl(target.stream_url);
-                    });
-                }
-                break;
-            case 'player':
-                if (keyCode === 37) { setActiveSection('channels'); setFocusedIdx(0); }
-                if (keyCode === 13 && playingUrl) setIsFullScreen(true);
-                break;
-            default: break;
+        if (e.key === 'Backspace' || e.key === 'Escape') {
+            e.preventDefault();
+            window.location.href = '/exit'; 
+            return;
+        }
+
+        if (activeSection === 'categories') {
+            if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, CATEGORIES.length - 1));
+            if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+            if (e.key === 'ArrowRight') { setActiveSection('languages'); setFocusedIdx(selectedLang); }
+            if (e.key === 'Enter') {
+                setSelectedCat(focusedIdx);
+                updateFilteredList(allChannels, focusedIdx, selectedLang);
+            }
+        } 
+        else if (activeSection === 'languages') {
+            if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, LANGUAGES.length - 1));
+            if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+            if (e.key === 'ArrowLeft') { setActiveSection('categories'); setFocusedIdx(selectedCat); }
+            if (e.key === 'ArrowRight') { setActiveSection('channels'); setFocusedIdx(0); }
+            if (e.key === 'Enter') {
+                setSelectedLang(focusedIdx);
+                updateFilteredList(allChannels, selectedCat, focusedIdx);
+            }
+        }
+        else if (activeSection === 'channels') {
+            if (e.key === 'ArrowDown') setFocusedIdx(p => Math.min(p + 1, filteredChannels.length - 1));
+            if (e.key === 'ArrowUp') setFocusedIdx(p => Math.max(p - 1, 0));
+            if (e.key === 'ArrowLeft') { setActiveSection('languages'); setFocusedIdx(selectedLang); }
+            if (e.key === 'ArrowRight') { setActiveSection('player'); }
+            if (e.key === 'Enter' && filteredChannels[focusedIdx]) {
+                const target = filteredChannels[focusedIdx];
+                getPallyTokenFromNetwork(target.encryption_url).then((res) => {
+                    setDrmTokenUpdate(res.response_object[0].base64Token);
+                    setPlayingUrl(target.stream_url);
+                });
+            }
+        }
+        else if (activeSection === 'player') {
+            if (e.key === 'ArrowLeft') { setActiveSection('channels'); setFocusedIdx(0); }
+            if (e.key === 'Enter' && playingUrl) setIsFullScreen(true);
         }
     }, [activeSection, focusedIdx, filteredChannels, allChannels, selectedCat, selectedLang, updateFilteredList, isFullScreen, playingUrl]);
 
@@ -906,61 +672,59 @@ const HomeScreen = ({ accessToken }) => {
 
     const currentHover = (activeSection === 'channels' || activeSection === 'player') ? (filteredChannels[focusedIdx] || filteredChannels[0]) : (filteredChannels[0] || {});
 
-    // --- 4K OPTIMIZED UI CONSTANTS ---
+    // --- TV STYLES ---
+    const headerBaseStyle = {
+        backgroundColor: '#FFFAE0', color: '#000', height: '55px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '20px', fontWeight: '900', borderRadius: '4px', textTransform: 'uppercase'
+    };
+
     const styles = {
         container: { 
             width: '100vw', height: '100vh', backgroundColor: '#000', color: '#fff', 
-            display: 'flex', padding: '2vw', boxSizing: 'border-box', overflow: 'hidden', gap: '1.5vw' 
+            display: 'flex', padding: '4% 3%', boxSizing: 'border-box', overflow: 'hidden', gap: '15px' 
         },
-        sidebarColumn: { 
-            display: 'flex', flexDirection: 'column', backgroundColor: '#080808', 
-            height: '100%', borderRadius: '15px', border: '2px solid #1a1a1a', flexShrink: 0 
-        },
-        scrollArea: { 
-            flex: 1, overflowY: 'hidden', padding: '1vw', display: 'flex', flexDirection: 'column' 
-        },
+        sidebarColumn: { display: 'flex', flexDirection: 'column', backgroundColor: '#0a0a0a', gap: '10px', height: '100%', borderRadius: '8px', border: '1px solid #1a1a1a' },
+        scrollArea: { flex: 1, overflowY: 'auto', padding: '10px', scrollbarWidth: 'none' },
         sidebarItem: (isFocused, isSelected) => ({
-            padding: '1.5vh 1vw', marginBottom: '1vh', borderRadius: '10px', textAlign: 'center',
-            border: isFocused ? '6px solid #f00' : '3px solid transparent',
-            backgroundColor: isSelected ? '#2a2a2a' : (isFocused ? '#1a1a1a' : 'transparent'),
+            padding: '14px 10px', marginBottom: '12px', borderRadius: '6px', textAlign: 'center',
+            border: isFocused ? '4px solid #f00' : '2px solid transparent',
+            backgroundColor: isSelected ? '#222' : 'transparent',
             color: isFocused ? '#f00' : (isSelected ? '#00D1FF' : '#fff'), 
-            fontSize: '1.8rem', fontWeight: '900', flexShrink: 0,
-            transition: 'transform 0.1s ease-in-out',
-            transform: isFocused ? 'scale(1.05)' : 'scale(1)'
+            fontSize: '19px', fontWeight: 'bold'
         }),
         channelBox: (isFocused) => ({
-            height: '18vh', minHeight: '18vh', marginBottom: '2vh', display: 'flex', 
-            alignItems: 'center', justifyContent: 'center', borderRadius: '12px', 
-            backgroundColor: '#111', border: isFocused ? '8px solid #f00' : '4px solid transparent',
-            transform: isFocused ? 'scale(1.1)' : 'scale(1)', transition: 'all 0.15s', flexShrink: 0,
-            zIndex: isFocused ? 10 : 1
+            height: '86px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: '8px', backgroundColor: '#111', border: isFocused ? '4px solid #f00' : '1px solid #333',
+            transform: isFocused ? 'scale(1.1)' : 'scale(1)', transition: '0.2s'
         }),
-        rightPanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2vh', height: '100%', minWidth: 0 },
-        headerBase: {
-            backgroundColor: '#FFFAE0', color: '#000', height: '8vh',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '2rem', fontWeight: '1000', borderRadius: '8px', flexShrink: 0
-        },
+        rightPanel: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' },
         playerWrapper: (isFocused) => ({
-            flex: 1, backgroundColor: '#000', borderRadius: '15px', 
-            border: isFocused ? '10px solid #00D1FF' : '4px solid #222',
+            flex: 1, backgroundColor: '#000', borderRadius: '10px', 
+            border: isFocused ? '5px solid #00D1FF' : '2px solid #222',
             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
         }),
         fullScreen: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 9999 }
     };
 
     if (isFullScreen && playingUrl) {
-        return <div style={styles.fullScreen}><ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate} /></div>;
+        return (
+            <div style={styles.fullScreen}>
+                <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate} />
+            </div>
+        );
     }
 
     return (
         <div style={styles.container}>
-            <style>{` ::-webkit-scrollbar { display: none; } body { font-size: 24px; } `}</style>
+            <style>{`
+                ::-webkit-scrollbar { display: none; }
+                @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+            `}</style>
 
-            <div style={{ display: 'flex', gap: '1.5vw', height: '100%', flexShrink: 0 }}>
-                {/* Categories */}
-                <div style={{ ...styles.sidebarColumn, width: '18vw' }}>
-                    <div style={styles.headerBase}>CATEGORIES</div>
+            <div style={{ display: 'flex', gap: '12px', height: '100%' }}>
+                <div style={{ ...styles.sidebarColumn, width: '220px' }}>
+                    <div style={headerBaseStyle}>Categories</div>
                     <div style={styles.scrollArea} ref={catRef}>
                         {CATEGORIES.map((cat, i) => (
                             <div key={i} style={styles.sidebarItem(activeSection === 'categories' && focusedIdx === i, selectedCat === i)}>{cat.name}</div>
@@ -968,9 +732,8 @@ const HomeScreen = ({ accessToken }) => {
                     </div>
                 </div>
 
-                {/* Languages */}
-                <div style={{ ...styles.sidebarColumn, width: '18vw' }}>
-                    <div style={styles.headerBase}>LANGUAGES</div>
+                <div style={{ ...styles.sidebarColumn, width: '220px' }}>
+                    <div style={headerBaseStyle}>Languages</div>
                     <div style={styles.scrollArea} ref={langRef}>
                         {LANGUAGES.map((lang, i) => (
                             <div key={i} style={styles.sidebarItem(activeSection === 'languages' && focusedIdx === i, selectedLang === i)}>{lang.name}</div>
@@ -978,13 +741,12 @@ const HomeScreen = ({ accessToken }) => {
                     </div>
                 </div>
 
-                {/* Channels */}
-                <div style={{ ...styles.sidebarColumn, width: '15vw' }}>
-                    <div style={styles.headerBase}>CHANNELS</div>
+                <div style={{ ...styles.sidebarColumn, width: '170px' }}>
+                    <div style={headerBaseStyle}>Channels</div>
                     <div style={styles.scrollArea} ref={chanRef}>
                         {filteredChannels.map((ch, i) => (
                             <div key={ch.id} style={styles.channelBox(activeSection === 'channels' && focusedIdx === i)}>
-                                <img src={ch.icon_url} alt="" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
+                                <img src={ch.icon_url} alt="" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain' }} />
                             </div>
                         ))}
                     </div>
@@ -992,32 +754,41 @@ const HomeScreen = ({ accessToken }) => {
             </div>
 
             <div style={styles.rightPanel}>
-                <div style={{ display: 'flex', gap: '1vw', flexShrink: 0 }}>
-                    <div style={{ ...styles.headerBase, width: '100px' }}>{currentHover?.channel_number || '--'}</div>
-                    <div style={{ ...styles.headerBase, flex: 1, padding: '0 2vw', justifyContent: 'flex-start' }}>{currentHover?.title || 'SELECT CHANNEL'}</div>
-                    <div style={{ ...styles.headerBase, width: '400px', backgroundColor: '#1a0000', border: '4px solid #f00', color: '#fff' }}>
-                        LIVE ULKA TV
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ ...headerBaseStyle, width: '80px' }}>{currentHover?.channel_number || '---'}</div>
+                    <div style={{ ...headerBaseStyle, flex: 1 }}>{currentHover?.title || 'SELECT CHANNEL'}</div>
+                    
+                    {/* ANIMATED MARQUEE */}
+                    <div style={{ ...headerBaseStyle, width: '400px', backgroundColor: '#200', border: '2px solid red', overflow: 'hidden' }}>
+                        <div style={{ color: '#FFFAE0', fontSize: '20px', fontWeight: 'bold', whiteSpace: 'nowrap', animation: 'marquee 15s linear infinite' }}>
+                             • Use Arrows to Navigate • Press Ok to Play • Enjoy Ulka TV •
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1vw', flexShrink: 0 }}>
+                {/* PROGRAM SLOTS */}
+                <div style={{ display: 'flex', gap: '10px' }}>
                     {[1, 2, 3].map(n => (
-                        <div key={n} style={{ flex: 1, height: '10vh', backgroundColor: '#111', borderRadius: '10px', border: '2px solid #333', color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>EPG SLOT {n}</div>
+                        <div key={n} style={{ flex: 1, height: '80px', backgroundColor: '#1a1a1a', borderRadius: '4px', border: '1px solid #333', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                            Program {n}
+                        </div>
                     ))}
                 </div>
 
+                {/* PLAYER */}
                 <div style={styles.playerWrapper(activeSection === 'player')}>
                     {playingUrl ? (
                         <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate}/>
                     ) : (
                         <div style={{ textAlign: 'center' }}>
-                            {currentHover?.icon_url && <img src={currentHover.icon_url} alt="" style={{ height: '25vh', marginBottom: '2vh', opacity: 0.7 }} />}
-                            <h1 style={{ color: '#00D1FF', fontSize: '3.5rem' }}>PRESS OK TO WATCH</h1>
+                            {currentHover?.icon_url && <img src={currentHover.icon_url} alt="" style={{ height: '140px', marginBottom: '15px' }} />}
+                            <h2 style={{ fontSize: '24px', color: '#00D1FF' }}>PRESS OK TO WATCH</h2>
                         </div>
                     )}
                 </div>
 
-                <div style={{ height: '12vh', backgroundColor: '#00D1FF', borderRadius: '15px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem', fontWeight: '1000', flexShrink: 0 }}>
+                {/* ADVERTISEMENT */}
+                <div style={{ height: '100px', backgroundColor: '#00D1FF', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '38px', fontWeight: '900' }}>
                     ULKA TV ADVERTISEMENT
                 </div>
             </div>
