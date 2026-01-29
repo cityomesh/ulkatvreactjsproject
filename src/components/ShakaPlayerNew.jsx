@@ -100,9 +100,12 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             let licenseToken = '';
             if (encryption_url) {
                 try {
+                    console.log('Fetching PallyCon token from:', encryption_url);
                     const res = await getPallyTokenFromNetwork(encryption_url);
+                    console.log('PallyCon token response:', res);
                     const base64Token = res?.response_object?.[0]?.base64Token || '';
                     const decoded = base64Token ? atob(base64Token) : '';
+                    console.log('Decoded PallyCon token:', decoded);
                     try {
                         const parsed = decoded ? JSON.parse(decoded) : null;
                         licenseToken = parsed?.token || decoded || '';
@@ -110,6 +113,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
                         licenseToken = decoded || base64Token || '';
                     }
                 } catch (e) {
+                    console.error('Error fetching PallyCon token:', e);
                     const code = e && e.code ? e.code : null;
                     const msg = code ? `Error ${code}: DRM error` : 'DRM error';
                     showError(msg);
@@ -117,7 +121,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             }
 
             if (licenseToken) {
-                console.log("license token exists:", licenseToken);
+                console.log("License token exists:", licenseToken);
                 player.configure('drm.servers', {
                     'com.widevine.alpha': 'https://license.pallycon.com/ri/licenseManager.do'
                 });
@@ -128,6 +132,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
                 if (net) {
                     filterFnRef.current = (type, request) => {
                         if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
+                            console.log('Setting pallycon-customdata-v2 header:', licenseToken);
                             request.headers['pallycon-customdata-v2'] = licenseToken;
                         }
                     };
@@ -136,6 +141,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             }
 
             errorListenerRef.current = (evt) => {
+                console.error("DRM error:", evt.detail);
                 const code = evt && evt.detail && evt.detail.code ? evt.detail.code : null;
                 const msg = code ? `Error ${code}: ${basicMessageForCode(code)}` : 'Playback error';
                 showError(msg);
@@ -143,9 +149,12 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             player.addEventListener('error', errorListenerRef.current);
 
             try {
+                console.log('Loading stream:', stream_url);
+                console.log('Player configuration:', player.getConfiguration());
                 await player.load(stream_url);
                 console.log("SUCCESS: Playing stream!");
             } catch (error) {
+                console.error('Error loading stream:', error);
                 const code = error && error.code ? error.code : null;
                 const msg = code ? `Error ${code}: ${basicMessageForCode(code)}` : 'Load error';
                 showError(msg);
