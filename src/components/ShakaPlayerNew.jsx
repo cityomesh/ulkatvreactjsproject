@@ -75,6 +75,28 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             const player = new shaka.Player(videoRef.current);
             playerRef.current = player;
 
+            player.configure('streaming.bufferingGoal', 15);
+            player.configure('streaming.rebufferingGoal', 0.01);
+            player.configure('streaming.retryParameters.timeout', 30000);
+            player.configure('streaming.retryParameters.stallTimeout', 5000);
+            player.configure('streaming.retryParameters.connectionTimeout', 10000);
+            player.configure('streaming.retryParameters.maxAttempts', 2);
+            player.configure('streaming.retryParameters.baseDelay', 1000);
+            player.configure('streaming.retryParameters.backoffFactor', 2);
+            player.configure('streaming.retryParameters.fuzzFactor', 0.5);
+            player.configure('streaming.lowLatencyMode', false);
+            player.configure('streaming.bufferBehind', 30);
+            player.configure('streaming.evictionGoal', 1);
+            player.configure('streaming.stallEnabled', true);
+            player.configure('streaming.stallThreshold', 1.5);
+            player.configure('streaming.stallSkip', 0.1);
+            player.configure('streaming.updateIntervalSeconds', 0.5);
+            player.configure('streaming.clearDecodingCache', true);
+            player.configure('manifest.dash.autoCorrectDrift', true);
+            player.configure('manifest.retryParameters.baseDelay', 100);
+            player.configure('drm.retryParameters.baseDelay', 100);
+            player.configure('drm.preferredKeySystems', ['com.widevine.alpha']);
+
             let licenseToken = '';
             if (encryption_url) {
                 try {
@@ -95,12 +117,12 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             }
 
             if (licenseToken) {
+                console.log("license token exists:", licenseToken);
                 player.configure('drm.servers', {
-                    'com.widevine.alpha': 'https://license-global.pallycon.com/ri/licenseManager.do',
-                    'com.microsoft.playready': 'https://license-global.pallycon.com/ri/licenseManager.do'
+                    'com.widevine.alpha': 'https://license.pallycon.com/ri/licenseManager.do'
                 });
                 player.configure('drm.defaultAudioRobustnessForWidevine', 'SW_SECURE_CRYPTO');
-                player.configure('drm.defaultVideoRobustnessForWidevine', 'SW_SECURE_CRYPTO');
+                player.configure('drm.defaultVideoRobustnessForWidevine', 'SW_SECURE_DECODE');
 
                 const net = player.getNetworkingEngine();
                 if (net) {
