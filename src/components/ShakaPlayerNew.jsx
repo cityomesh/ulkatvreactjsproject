@@ -141,7 +141,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
             }
 
             errorListenerRef.current = (evt) => {
-                console.error("DRM error:", evt.detail);
+                console.log("DRM error:", JSON.stringify(evt.detail));
                 const code = evt && evt.detail && evt.detail.code ? evt.detail.code : null;
                 const msg = code ? `Error ${code}: ${basicMessageForCode(code)}` : 'Playback error';
                 showError(msg);
@@ -154,7 +154,7 @@ const ShakaPlayerNew = ({ stream_url, encryption_url }) => {
                 await player.load(stream_url);
                 console.log("SUCCESS: Playing stream!");
             } catch (error) {
-                console.error('Error loading stream:', error);
+                console.log('Error loading stream:', JSON.stringify(error));
                 const code = error && error.code ? error.code : null;
                 const msg = code ? `Error ${code}: ${basicMessageForCode(code)}` : 'Load error';
                 showError(msg);
