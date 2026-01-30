@@ -1,9 +1,9 @@
 //Homescreen.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import { getChannels } from '../components/api';
 import { useNavigate } from 'react-router-dom';
-import ShakaPlayer from './ShakaPlayer';
-import ShakaPlayerNew from './ShakaPlayerNew';
+import ShakaPlayer from '../components/ShakaPlayer';
+import ShakaPlayerNew from '../components/ShakaPlayerNew';
 
 const API_HOST = 'http://202.62.66.115:8080';
 const CHANNELS_ENDPOINT = '/apiv2/channels/list';
@@ -58,12 +58,10 @@ const HomeScreen = ({ accessToken }) => {
 
     useEffect(() => {
         const fetchChannels = async () => {
-            const currentToken = accessToken || localStorage.getItem('ulka_token');
-            if (!currentToken) return;
             try {
-                const response = await axios.post(`${API_HOST}${CHANNELS_ENDPOINT}`, { auth: currentToken });
-                if (response.data.status_code === 200) {
-                    const data = response.data.response_object;
+                const response = await getChannels(accessToken);
+                if (response.status_code === 200) {
+                    const data = response.response_object;
                     setAllChannels(data);
                     updateFilteredList(data, 0, 0);
                 }
