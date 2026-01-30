@@ -21,8 +21,8 @@ import {
 
 const LoginScreen = ({ startAtProfiles = false }) => {
     // --- State Management ---
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('linuxtest');
+    const [password, setPassword] = useState('Ulka@123');
     const [showPassword, setShowPassword] = useState(false);
     const [activeInput, setActiveInput] = useState('');
     const [isCaps, setIsCaps] = useState(false);
@@ -154,9 +154,16 @@ const LoginScreen = ({ startAtProfiles = false }) => {
 
     const handleRemoteEnter = () => {
     if (focusKey === 'username' || focusKey === 'password') {
-        setKeyboardTarget(focusKey);
-        setIsKeyboardVisible(true);
-        setFocusKey('keyboard');
+        // Toggle keyboard visibility - if already visible, hide it; if hidden, show it
+        if (isKeyboardVisible) {
+            setIsKeyboardVisible(false);
+            setKeyboardTarget('');
+            // Keep focus on the current input field
+        } else {
+            setKeyboardTarget(focusKey);
+            setIsKeyboardVisible(true);
+            setFocusKey('keyboard');
+        }
         return;
     }
 
