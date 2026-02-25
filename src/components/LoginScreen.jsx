@@ -895,7 +895,2006 @@
 
 
 
-// src/components/LoginScreen.jsx - (Updated for HomeScreen integration and INLINE CustomKeyboard)
+
+
+
+// // src/components/LoginScreen.jsx - (Updated for HomeScreen integration and INLINE CustomKeyboard)
+// import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+// import axios from 'axios'; 
+// import CreateProfileScreen from './CreateProfileScreen'; 
+// import HomeScreen from './HomeScreen'; 
+
+// const LOGO_ULKA = "ulkatv.png";
+// const ICON_DOWN_ARROW = "DownArrow.png";
+// const BG_IMAGE_1 = "LoginIMG1.webp"; 
+// const BG_IMAGE_2 = "allnames.webp"; 
+// const AVATAR_DEFAULT = "Avatar16.png"; 
+// const AVATAR_LIST = ["Avatar15.png", "Avatar14.png", "Avatar13.png"];
+// const COLOR_PRIMARY = '#E50914'; 
+// const COLOR_FOCUS = '#e1001eff';   
+// const COLOR_HEADER = '#e6dc53ff';
+// const COLOR_4K = '#FFB800';      
+// const COLOR_WHITE = '#ffffff'; 
+// const COLOR_BLACK = '#020202ff';
+// const COLOR_DARK_GREY = '#1a1a1a'; 
+
+// const Icon = ({ name, size = 20, color = COLOR_WHITE }) => {
+//     const icons = {
+//         'eye-off-outline': '👁️‍🗨️', 
+//         'eye-outline': '👁️',       
+//         'chevron-down': '▼'
+//     };
+//     return (
+//         <span style={{ fontSize: size, color }}>{icons[name] || '❔'}</span>
+//     );
+// };
+// const GlobalInputStyles = () => (
+//     <style>
+//         {`
+//             ::selection {
+//                 background: ${COLOR_FOCUS}; 
+//                 color: ${COLOR_WHITE};
+//             }
+//             input:-webkit-autofill,
+//             input:-webkit-autofill:hover, 
+//             input:-webkit-autofill:focus, 
+//             input:-webkit-autofill:active {
+//                 -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important; 
+//                 -webkit-text-fill-color: ${COLOR_WHITE} !important; 
+//                 transition: background-color 5000s ease-in-out 0s; 
+//             }
+//         `}
+//     </style>
+// );
+
+// const SYMBOL_LAYOUT = [
+//   ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
+//   ['-', '_', '+', '=', '{', '}', '[', ']'],
+//   [';', ':', '"', "'", '<', '>', '?'],
+//   ['ABC', 'BACK'],
+//   ['SPACE', 'ENTER']
+// ];
+
+
+// const KEYBOARD_LAYOUT = [
+//   ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+//   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+//   ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+//   ['CAPS', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'BACK'],
+//   ['@#$', '.', 'SPACE', 'ENTER'],
+// ];
+
+// const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
+//   return (
+//     <div style={{
+//       width: '900px',
+//       padding: '20px',
+//       backgroundColor: 'rgba(20,20,20,0.95)',
+//       borderRadius: '15px',
+//       border: '1px solid #333'
+//     }}>
+//       {layout.map((row, rIdx) => (
+//         <div key={rIdx} style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
+//           {row.map((key, cIdx) => {
+//             const focused =
+//               isKeyboardFocused &&
+//               focusedPos.row === rIdx &&
+//               focusedPos.col === cIdx;
+
+//             return (
+//               <div
+//                 key={key}
+//                 style={{
+//                   flex: key === 'SPACE' ? 4 : key === 'ENTER' || key === 'CAPS' ? 1.5 : 1,
+//                   height: '50px',
+//                   display: 'flex',
+//                   alignItems: 'center',
+//                   justifyContent: 'center',
+//                   backgroundColor: focused ? COLOR_FOCUS : '#333',
+//                   color: COLOR_WHITE,
+//                   borderRadius: '8px',
+//                   fontWeight: 'bold',
+//                   fontSize: '18px',
+//                   border: focused ? '3px solid white' : '1px solid transparent',
+//                   transform: focused ? 'scale(1.1)' : 'scale(1)',
+//                   transition: 'all 0.1s'
+//                 }}
+//               >
+//                 {key === 'BACK'
+//                   ? '⌫'
+//                   : key.length === 1
+//                     ? (isCaps ? key.toUpperCase() : key.toLowerCase())
+//                     : key}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
+
+
+// // =======================================================
+// // *** ProfileScreen COMPONENT (Unchanged) ***
+// // =======================================================
+
+// const ProfileScreen = ({ accessToken, onCreateProfile, profiles, onSelectProfile, onLogout }) => {
+//     const storedUsername = localStorage.getItem('ulka_username') || "User";
+    
+//     const MAX_PROFILES = 4;
+//     const profileSlots = [];
+
+//     profileSlots.push({ 
+//         id: 'slot-1', 
+//         name: storedUsername,
+//         image: AVATAR_DEFAULT, 
+//         isFixed: true 
+//     });
+
+//     profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+//         profileSlots.push({ 
+//             ...p, 
+//             id: `slot-${idx + 2}`,
+//             image: p.image || AVATAR_LIST[idx] || AVATAR_DEFAULT 
+//         });
+//     });
+    
+//     const isAddSlotAvailable = profileSlots.length < MAX_PROFILES;
+//     if (isAddSlotAvailable) {
+//         profileSlots.push({ 
+//             id: 'slot-add', 
+//             name: 'Add Profile', 
+//             isAddButton: true 
+//         });
+//     }
+
+//     const [focusedId, setFocusedId] = useState(profileSlots[0]?.id || null);
+
+//     useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
+
+//             if (e.key === 'ArrowRight') {
+//                 if (currentIndex < profileSlots.length - 1) {
+//                     setFocusedId(profileSlots[currentIndex + 1].id);
+//                 }
+//             } else if (e.key === 'ArrowLeft') {
+//                 if (currentIndex > 0) {
+//                     setFocusedId(profileSlots[currentIndex - 1].id);
+//                 }
+//             } else if (e.key === 'ArrowDown') {
+//                 setFocusedId('logout-btn');
+//             } else if (e.key === 'ArrowUp') {
+//                 if (focusedId === 'logout-btn') {
+//                     setFocusedId(profileSlots[0].id);
+//                 }
+//             } else if (e.key === 'Enter') {
+//                 if (focusedId === 'logout-btn') {
+//                     onLogout();
+//                 } else {
+//                     const activeSlot = profileSlots.find(s => s.id === focusedId);
+//                     if (activeSlot) handleProfileClick(activeSlot.name);
+//                 }
+//             }
+//         };
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [focusedId, profileSlots]);
+
+//     const handleProfileClick = (profileName) => {
+//         if (profileName === 'Add Profile') {
+//             onCreateProfile();
+//         } else {
+//             localStorage.setItem('ulka_username', profileName); 
+            
+
+//             const existingToken = localStorage.getItem('ulka_token');
+//             if (existingToken) {
+//                 onSelectProfile(profileName, existingToken);
+//             } else {
+//                 onSelectProfile(profileName);
+//             }
+//         }
+//     };
+
+//     const styles = {
+//         profileView: {
+//             display: 'flex',
+//             flexDirection: 'column',
+//             alignItems: 'center',
+//             justifyContent: 'center',
+//             minHeight: '100vh',
+//             backgroundColor: COLOR_BLACK,
+//             padding: '50px',
+//         },
+//         cardTitle: {
+//             fontSize: '40px',
+//             fontWeight: 700,
+//             color: COLOR_WHITE,
+//             marginBottom: '40px',
+//         },
+//         profileButtonsContainer: {
+//             display: 'flex',
+//             flexDirection: 'row',
+//             flexWrap: 'wrap',
+//             gap: '50px', 
+//             marginBottom: '20px',
+//             justifyContent: 'center',
+//             maxWidth: '380px', 
+//         },
+//         profileWrapper: {
+//             display: 'flex',
+//             flexDirection: 'column',
+//             alignItems: 'center',
+//             width: '120px', 
+//         },
+//         profileButton: {
+//             width: '120px',
+//             height: '120px',
+//             borderRadius: '60px',
+//             backgroundColor: COLOR_DARK_GREY,
+//             display: 'flex',
+//             justifyContent: 'center',
+//             alignItems: 'center',
+//             border: '4px solid transparent',
+//             cursor: 'pointer',
+//             marginBottom: '10px',
+//             transition: 'border-color 250ms, transform 250ms',
+//         },
+//         addProfileButton: {
+//             width: '120px',
+//             height: '120px',
+//             borderRadius: '60px',
+//             backgroundColor: '#333', 
+//             display: 'flex',
+//             justifyContent: 'center',
+//             alignItems: 'center',
+//             border: '4px solid transparent',
+//             cursor: 'pointer',
+//             marginBottom: '10px',
+//             transition: 'border-color 250ms, transform 250ms',
+//         },
+//         focused: {
+//             borderColor: COLOR_FOCUS,
+//             transform: 'scale(1.1)',
+//         },
+//         imageIcon: {
+//             width: '100%',
+//             height: '100%',
+//             borderRadius: '50%',
+//             objectFit: 'cover',
+//         },
+//         addIconText: {
+//             color: COLOR_WHITE, 
+//             fontSize: '60px',
+//         },
+//         profileButtonText: {
+//             color: COLOR_WHITE,
+//             fontSize: '20px',
+//             fontWeight: 500,
+//             textAlign: 'center',
+//         },
+//         logoInCard: {
+//             width: '400px',
+//         },
+//     };
+    
+//     return (
+//             <div style={styles.profileView}>
+//                 <h1 style={styles.cardTitle}>Who's Watching?</h1>
+                
+//                 <div style={styles.profileButtonsContainer}>
+//                     {profileSlots.map((profileSlot) => {
+//                         const isFocused = focusedId === profileSlot.id;
+                        
+//                         return (
+//                             <div key={profileSlot.id} style={styles.profileWrapper}>
+//                                 <button
+//                                     onClick={() => handleProfileClick(profileSlot.name)} 
+//                                     onFocus={() => setFocusedId(profileSlot.id)}
+//                                     style={{
+//                                         ... (profileSlot.isAddButton ? styles.addProfileButton : styles.profileButton),
+//                                         ...(isFocused ? styles.focused : {})
+//                                     }}
+//                                 >
+//                                     {profileSlot.isAddButton ? (
+//                                         <span style={styles.addIconText}>+</span>
+//                                     ) : (
+//                                         <img src={profileSlot.image} alt={profileSlot.name} style={styles.imageIcon} />
+//                                     )}
+//                                 </button>
+//                                 <p style={styles.profileButtonText}>{profileSlot.name}</p>
+//                             </div>
+//                         );
+//                     })}
+//                 </div>
+                
+//                 <img src={LOGO_ULKA} alt="Ulka TV" style={styles.logoInCard} />
+                
+//             </div>
+//         );
+//     };
+
+// // =======================================================
+// // *** LoginScreen COMPONENT (Updated with Keyboard Logic) ***
+// // =======================================================
+// const LoginScreen = ({ startAtProfiles = false }) => {
+//     // --- State Management ---
+//     const [username, setUsername] = useState('');
+//     const [password, setPassword] = useState('');
+//     const [showPassword, setShowPassword] = useState(false);
+//     const [activeInput, setActiveInput] = useState('');
+//     const [isCaps, setIsCaps] = useState(false);
+//     const [isSymbol, setIsSymbol] = useState(false);
+//     const [focusedId, setFocusedId] = useState('slot-1'); 
+//     const layout = isSymbol ? SYMBOL_LAYOUT : KEYBOARD_LAYOUT;
+//     const [focusKey, setFocusKey] = useState('username'); 
+//     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
+//     const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
+//     const [loading, setLoading] = useState(false);
+//     const [apiError, setApiError] = useState('');
+//     const [accessToken, setAccessToken] = useState('');
+//     const [isCreatingProfile, setIsCreatingProfile] = useState(false); 
+    
+//     const [isViewingHome, setIsViewingHome] = useState(false); 
+//     const [selectedProfile, setSelectedProfile] = useState(''); 
+
+//     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); 
+//     const [keyboardTarget, setKeyboardTarget] = useState(''); 
+//     const keyboardRef = useRef(null); 
+//     const [profiles, setProfiles] = useState([]); 
+//     const [bgIndex, setBgIndex] = useState(0);
+//     const backgrounds = [BG_IMAGE_1, BG_IMAGE_2];
+//     const DUMMY_MAC_ADDRESS = "00:00:00:00:00:00";
+//     const DUMMY_FIREBASE_TOKEN = "web_dummy_firebase_token";
+//     const DUMMY_FIRMWARE_VERSION = "1.0.0_web";
+//     const DUMMY_APP_ID = "1";
+//     const DUMMY_IP = "127.0.0.1";
+
+//     useEffect(() => {
+//     const savedUsername = localStorage.getItem('ulka_username');
+//     const savedPassword = localStorage.getItem('ulka_password');
+
+//     if (savedUsername) setUsername(savedUsername);
+//     if (savedPassword) setPassword(savedPassword);
+//     }, []);
+    
+
+//     const profileSlots = [];
+//         profileSlots.push({ id: 'slot-1', name: username, image: AVATAR_DEFAULT });
+//         profiles.slice(0, 3).forEach((p, idx) => {
+//             profileSlots.push({ ...p, id: `slot-${idx + 2}`, image: p.image || AVATAR_LIST[idx] });
+//         });
+//         if (profileSlots.length < 4) {
+//             profileSlots.push({ id: 'slot-add', name: 'Add Profile', isAddButton: true });
+//         }
+
+//       useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             if (isViewingHome) return;
+
+//             if (isLoggedIn && !isCreatingProfile) {
+//                 const profileSlotsCount = profiles.length + 1;
+//                 const addProfileExists = profileSlotsCount < 4;
+//                 const totalItems = addProfileExists ? profileSlotsCount + 1 : profileSlotsCount;
+//                 const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
+
+//                 switch (e.key) {
+//                     case 'ArrowLeft':
+//                         if (currentIndex > 0) {
+//                             setFocusedId(profileSlots[currentIndex - 1].id);
+//                         }
+//                         break;
+//                     case 'ArrowRight':
+//                         if (currentIndex < profileSlots.length - 1) {
+//                             setFocusedId(profileSlots[currentIndex + 1].id);
+//                         }
+//                         break;            
+//                 }
+//                 return; 
+//             }
+
+//             switch (e.key) {
+//                 case 'ArrowUp':
+//                     if (focusKey === 'password') setFocusKey('username');
+//                     else if (focusKey === 'login_btn') setFocusKey('password');
+//                     else if (focusKey === 'keyboard') {
+//                         if (kbPos.row > 0) {
+//                             setKbPos(p => ({ ...p, row: p.row - 1 }));
+//                         } else {
+//                             setIsKeyboardVisible(false);
+//                             setFocusKey('login_btn');
+//                         }
+//                     }
+//                     break;
+
+//                 case 'ArrowDown':
+//                     if (focusKey === 'username') setFocusKey('password');
+//                     else if (focusKey === 'password') setFocusKey('login_btn');
+//                     else if (focusKey === 'login_btn') {
+//                         setFocusKey('keyboard');
+//                         setIsKeyboardVisible(true);
+//                         setKbPos({ row: 0, col: 4 });
+//                     } 
+//                     else if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({
+//                             ...p,
+//                             row: Math.min(p.row + 1, layout.length - 1),
+//                             col: Math.min(p.col, layout[Math.min(p.row + 1, layout.length - 1)].length - 1)
+//                         }));
+//                     }
+//                     break;
+
+//                 case 'ArrowLeft':
+//                     if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({ ...p, col: Math.max(0, p.col - 1) }));
+//                     }
+//                     break;
+
+//                 case 'ArrowRight':
+//                     if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({
+//                             ...p,
+//                             col: Math.min(p.col + 1, layout[kbPos.row].length - 1)
+//                         }));
+//                     }
+//                     break;
+
+//                 case 'Enter':
+//                     handleRemoteEnter();
+//                     break;
+//             }
+//         };
+
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, focusedId, profiles, isCreatingProfile]);
+
+
+//     const handleRemoteEnter = () => {
+//     if (focusKey === 'username' || focusKey === 'password') {
+//         setKeyboardTarget(focusKey);
+//         setIsKeyboardVisible(true);
+//         setFocusKey('keyboard');
+//         return;
+//     }
+
+//     if (focusKey === 'login_btn') {
+//         handleLogin();
+//         return;
+//     }
+
+//     if (focusKey === 'keyboard') {
+//         const key = layout[kbPos.row][kbPos.col];
+
+//         if (key === 'CAPS') {
+//         setIsCaps(p => !p);
+//         return;
+//         }
+
+//         if (key === '@#$') {
+//         setIsSymbol(true);
+//         setKbPos({ row: 0, col: 0 });
+//         return;
+//         }
+
+//         if (key === 'ABC') {
+//         setIsSymbol(false);
+//         setKbPos({ row: 0, col: 0 });
+//         return;
+//         }
+
+//         if (key === 'BACK') {
+//         handleKeyboardKeyPress('backspace');
+//         return;
+//         }
+//         if (key === 'ENTER') {
+
+//         // 🔹 Username complete
+//         if (keyboardTarget === 'username') {
+//             setIsKeyboardVisible(false);   // ✅ keyboard close
+//             setKeyboardTarget('');
+//             setFocusKey('password');       // ✅ focus password
+//             return;
+//         }
+
+//         // 🔹 Password complete
+//         if (keyboardTarget === 'password') {
+//             setIsKeyboardVisible(false);   // ✅ keyboard close
+//             setKeyboardTarget('');
+//             setFocusKey('login_btn');      // ✅ focus sign in
+//             return;
+//         }
+//         }
+
+//         if (key === 'SPACE') {
+//         handleKeyboardKeyPress(' ');
+//         return;
+//         }
+
+//         handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
+//     }
+//     };
+
+
+//     useEffect(() => {
+//         const interval = setInterval(() => {
+//             setBgIndex((prev) => (prev + 1) % backgrounds.length);
+//         }, 8000);
+        
+//         return () => clearInterval(interval);
+//     }, []);
+
+//     const handleLogin = async () => {
+//         setIsKeyboardVisible(false);
+//         setKeyboardTarget('');
+
+//         if (username === 'omi' && password === '123') {
+//             const dummyToken = "DUMMY_TOKEN_OMI";
+//             localStorage.setItem('ulka_username', username);
+//             localStorage.setItem('ulka_password', password);
+//             localStorage.setItem('ulka_token', dummyToken);
+//             setAccessToken("DUMMY_TOKEN_OMI");
+//             setIsLoggedIn(true);
+//             setUsername('omi');
+//             setProfiles([
+//                 { id: 'p2', name: 'Rajini', image: AVATAR_LIST[0] },
+//                 { id: 'p3', name: 'Vamsi', image: AVATAR_LIST[1] },
+//             ]);
+//             setLoading(false);
+//             return;
+//         }
+
+//         if (loading) return;
+//         setApiError('');
+//         setLoading(true);
+
+//         const apiBody = {
+//             auth: `username=${username};password=${password};boxid=undefined;appid=${DUMMY_APP_ID};timestamp=${Date.now()}`,
+//         };
+
+//         try {
+//             const response = await axios.post('http://202.62.66.115:8080/apiv2/credentials/loginMini', apiBody);
+
+//             if (response.data?.status_code === 200 && response.data.response_object?.[0]?.access_token) {
+//                 const token = response.data.response_object[0].access_token;
+                
+//                 localStorage.setItem('ulka_username', username); 
+//                 localStorage.setItem('ulka_password', password);
+//                 localStorage.setItem('ulka_token', token);
+//                 setAccessToken(token);
+//                 setIsLoggedIn(true); 
+//                 setProfiles([]); 
+//             } else {
+//                 setApiError(response.data?.error_description || 'Login failed.');
+//             }
+//         } catch (error) {
+//             setApiError('Network error occurred.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+//     // Logout Handler (Unchanged)   
+//     const handleLogout = () => {
+//         localStorage.removeItem('ulka_token');
+//         localStorage.removeItem('ulka_username');
+//         localStorage.removeItem('ulka_password');
+//         setIsLoggedIn(false);
+//         setUsername('');
+//         setPassword('');
+//         setAccessToken('');
+//         setApiError('');
+//         setProfiles([]);
+//         setIsViewingHome(false); 
+//         setSelectedProfile('');
+//         setIsKeyboardVisible(false);
+//         setKeyboardTarget('');
+//         setActiveInput('');
+//     };
+    
+//     const handleSelectProfileAndNavigate = (profileName) => {
+//         setSelectedProfile(profileName);
+//         setIsViewingHome(true);
+//     };
+
+//     const handleSaveNewProfile = (newProfile) => {
+//         if (profiles.length < 3) {
+//             const avatarIndex = profiles.length; 
+//             const image = AVATAR_LIST[avatarIndex] || AVATAR_DEFAULT;
+            
+//             setProfiles(prev => [
+//                 ...prev, 
+//                 { 
+//                     id: `p${prev.length + 2}`,
+//                     name: newProfile.name, 
+//                     image: image 
+//                 }
+//             ]);
+//         }
+//         setIsCreatingProfile(false);
+//     };
+
+//     const handleKeyboardKeyPress = (key) => {
+//         if (key === 'backspace') {
+//             if (keyboardTarget === 'username') setUsername(prev => prev.slice(0, -1));
+//             if (keyboardTarget === 'password') setPassword(prev => prev.slice(0, -1));
+//         } else if (key === 'enter') {
+//             handleLogin();
+//         } else {
+//             if (keyboardTarget === 'username') setUsername(prev => prev + key);
+//             if (keyboardTarget === 'password') setPassword(prev => prev + key);
+//         }
+//     };
+
+//     const handleInputFocus = (inputName) => {
+//         setActiveInput(inputName);
+//         setFocusKey(inputName);
+//     };
+
+//     const getInputBorder = (inputName) => {
+//         const baseStyle = {
+//             width: '100%',
+//             height: '48px', 
+//             backgroundColor: 'rgba(55, 134, 238, 0.1)', 
+//             border: '5px solid',
+//             borderRadius: '8px', 
+//             padding: '0 16px',   
+//             display: 'flex',
+//             alignItems: 'center',
+//             marginBottom: '32px', 
+//             transition: 'border-color 300ms, transform 300ms, box-shadow 300ms',
+//             cursor: 'text',
+//         };
+
+//         if (activeInput === inputName || focusKey === inputName) {
+//             return {
+//                 ...baseStyle,
+//                 borderColor: COLOR_FOCUS, 
+//                 transform: 'scale(1.03)', 
+//                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)', 
+//             };
+//         } else {
+//             return {
+//                 ...baseStyle,
+//                 borderColor: '#6b7280', 
+//             };
+//         }
+//     };
+
+//     return (
+//         <div style={{
+//             width: '100%',
+//             height: '100vh', 
+//             display: 'flex',
+//             backgroundColor: COLOR_BLACK, 
+//             overflow: 'hidden',
+//         }}>
+//             <GlobalInputStyles />
+
+//             {isViewingHome && isLoggedIn && (
+//                 <HomeScreen
+//                     profileName={selectedProfile}
+//                     accessToken={accessToken}
+//                     onGoBackToProfiles={() => setIsViewingHome(false)}
+//                 />
+//             )}
+
+//             {isCreatingProfile && (
+//                 <CreateProfileScreen
+//                     username={username}
+//                     onGoBack={() => setIsCreatingProfile(false)}
+//                     onSaveProfile={handleSaveNewProfile} 
+//                 />
+//             )}
+            
+//             {isLoggedIn && !isCreatingProfile && !isViewingHome && (
+//                 <ProfileScreen 
+//                     username={username} 
+//                     accessToken={accessToken} 
+//                     onLogout={handleLogout} 
+//                     onCreateProfile={profiles.length < 3 ? () => setIsCreatingProfile(true) : () => alert("Maximum 4 profiles reached.")}
+//                     profiles={profiles}
+//                     focusedId={focusedId}
+//                     onSelectProfile={handleSelectProfileAndNavigate}
+//                     setFocusedId={setFocusedId}
+//                 />
+//             )}
+
+
+//             {!isLoggedIn && (
+//                 <div style={{
+//                     width: '30%', 
+//                     height: '100%',
+//                     display: 'flex',
+//                     justifyContent: 'center',
+//                     alignItems: 'center',
+//                     backgroundColor: COLOR_BLACK, 
+//                     zIndex: 10, 
+//                     minWidth: '580px', 
+//                 }}>
+//                     <div style={{
+//                         width: '100%',
+//                         maxWidth: '320px', 
+//                         display: 'flex',
+//                         flexDirection: 'column',
+//                         alignItems: 'center',
+//                         height: '100%',
+//                         paddingTop: '100px', 
+//                         paddingBottom: '8px',
+//                     }}>
+//                         <div style={{ width: '100%', textAlign: 'center', marginBottom: '20px' }}>
+//                             <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>THE FUTURE OF</h2>
+//                             <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>ENTERTAINMENT</h2>
+//                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+//                                 <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>IS HERE</h2>
+//                                 <div style={{ width: '40px', height: '40px', marginLeft: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+//                                     <img src={ICON_DOWN_ARROW} alt="Down Arrow" style={{ width: '30px', height: '30px' }} />
+//                                 </div>
+//                             </div>
+//                         </div>
+
+//                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+//                             {/* USERNAME INPUT */}
+//                         <div 
+//                             style={getInputBorder('username')}
+//                             onMouseEnter={() => handleInputFocus('username')}
+//                         >
+//                             <input
+//                                 style={{ flex: 1, backgroundColor: 'transparent', color: COLOR_WHITE, border: 'none', outline: 'none' }}
+//                                 type="text"
+//                                 placeholder="Username"
+//                                 value={username}
+//                                 onFocus={() => handleInputFocus('username')}
+//                                 readOnly={true} 
+//                             />
+//                         </div>
+
+//                             {/* PASSWORD INPUT */}
+//                             <div 
+//                             style={getInputBorder('password')}
+//                             onMouseEnter={() => handleInputFocus('password')}
+//                         >
+//                             <input
+//                                 style={{ flex: 1, backgroundColor: 'transparent', color: COLOR_WHITE, border: 'none', outline: 'none' }}
+//                                 type={showPassword ? "text" : "password"}
+//                                 placeholder="Password"
+//                                 value={password}
+//                                 onFocus={() => handleInputFocus('password')}
+//                                 readOnly={true}
+//                             />
+//                             <button onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+//                                 <Icon name={showPassword ? "eye-off-outline" : "eye-outline"} />
+//                             </button>
+//                         </div>
+                            
+//                             {apiError && (
+//                                 <p style={{ color: COLOR_PRIMARY, marginBottom: '10px', fontSize: '14px' }}>
+//                                     ⚠️ {apiError}
+//                                 </p>
+//                             )}
+                            
+//                             {/* SIGN IN BUTTON (Unchanged) */}
+//                             <button
+//                                 onClick={handleLogin} 
+//                                 onFocus={() => handleInputFocus('login_btn')}
+//                                 style={{
+//                                     width: '110%',
+//                                     height: '48px',
+//                                     borderRadius: '8px',
+//                                     fontWeight: 'bold',
+//                                     fontSize: '18px',
+//                                     marginBottom: '32px',
+//                                     backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY,
+//                                     border: focusKey === 'login_btn' ? '4px solid white' : 'none',
+//                                     cursor: 'pointer',
+//                                     transition: 'all 0.2s',
+//                                     transform: focusKey === 'login_btn' ? 'scale(1.05)' : 'scale(1)',
+//                                     color: COLOR_WHITE
+//                                 }}
+//                             >
+//                                 {loading ? 'Signing In...' : 'Sign In'}
+//                             </button>
+
+//                             {/* INFO / POLICY (Unchanged) */}
+//                             <div style={{ textAlign: 'center', width: '100%', marginBottom: '32px' }}>
+//                                 <a href="#" style={{ fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline', color: COLOR_HEADER }}>Privacy Policy</a>
+//                                 <p style={{ fontSize: '20px', fontWeight: 'bold', color: COLOR_HEADER, marginTop: '8px' }}>
+//                                     <span style={{ color: COLOR_4K, fontSize: '30px' }}>4K</span> Ultra HD Streaming
+//                                 </p>
+//                             </div>
+
+//                             {/* DEVICE TAGS (Unchanged) */}
+//                             <div style={{ display: 'flex', justifyContent: 'center' }}>
+//                                 {["SmartTV", "STB", "Stick", "Mobile"].map((d) => (
+//                                     <button key={d}
+//                                         style={{
+//                                             color: COLOR_WHITE,
+//                                             fontSize: '16px',
+//                                             fontWeight: '900',
+//                                             padding: '8px 13px',
+//                                             borderRadius: '8px',
+//                                             margin: '0 6px',
+//                                             backgroundColor: `${COLOR_PRIMARY}cc`, 
+//                                             border: 'none',
+//                                             cursor: 'pointer',
+//                                         }}
+//                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLOR_PRIMARY}
+//                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = `${COLOR_PRIMARY}cc`}
+//                                     >
+//                                         {d}
+//                                     </button>
+//                                 ))}
+//                             </div>
+
+//                         </div>
+
+//                         {/* LOGO (Unchanged) */}
+//                         <img src={LOGO_ULKA} alt="Company Logo" style={{ width: '400px' }} />
+//                     </div>
+//                 </div>
+//             )}
+            
+//             {!isViewingHome && (
+//                 <div style={{
+//                     flex: 1, 
+//                     height: '100%',
+//                     position: 'relative', 
+//                     backgroundColor: COLOR_BLACK, 
+//                     zIndex: 1, 
+//                 }}>
+//                     <div style={{
+//                         position: 'absolute',
+//                         top: 0,
+//                         left: 0,
+//                         width: '100%',
+//                         height: '100%',
+//                         overflow: 'hidden',
+//                     }}>
+//                         {/* BG 1 */}
+//                         <img 
+//                             src={backgrounds[0]} 
+//                             alt="Background Scene 1"
+//                             style={{
+//                                 position: 'fixed', 
+//                                 width: '70%',
+//                                 height: '100%',
+//                                 objectFit: 'contain',
+//                                 opacity: bgIndex === 0 ? 1 : 0, 
+//                                 backgroundColor: COLOR_BLACK, 
+//                                 transition: 'opacity 1s ease-in-out', 
+//                             }}
+//                         />
+
+//                         <img 
+//                             src={backgrounds[1]} 
+//                             alt="Background Scene 2"
+//                             style={{
+//                                 position: 'fixed', 
+//                                 width: '70%',
+//                                 height: '100%',
+//                                 objectFit: 'contain',
+//                                 opacity: bgIndex === 1 ? 1 : 0,
+//                                 backgroundColor: COLOR_BLACK, 
+//                                 transition: 'opacity 1s ease-in-out', 
+//                             }}
+//                         />
+//                     </div>
+
+//                     {/* DARK OVERLAY LAYER */}
+//                     <div style={{ 
+//                         position: 'absolute', 
+//                         top: 0, 
+//                         left: 0, 
+//                         width: '100%', 
+//                         height: '100%', 
+//                         backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+//                         zIndex: 2,
+//                     }}></div>
+//                 </div>
+//             )}
+            
+//             {/* 6. Custom Keyboard Integration */}
+//             <div style={{
+//                 position: 'fixed',
+//                 bottom: isKeyboardVisible ? '250px' : '-500px',
+//                 left: '260px',
+//                 right: '0',
+//                 zIndex: 100,
+//                 transition: 'bottom 0.4s cubic-bezier(0.17, 0.04, 0.03, 0.94)',
+//                 display: 'flex',
+//                 justifyContent: 'center'
+//             }}>
+//                 <CustomKeyboard
+//                 layout={layout}
+//                 isCaps={isCaps}
+//                 focusedPos={kbPos}
+//                 isKeyboardFocused={focusKey === 'keyboard'}
+//                 />
+
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default LoginScreen;
+
+
+
+
+
+
+
+// // src/components/LoginScreen.jsx - Fixed with profile persistence  worked
+// import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+// import axios from 'axios'; 
+// import CreateProfileScreen from './CreateProfileScreen'; 
+// import HomeScreen from './HomeScreen'; 
+
+// const LOGO_ULKA = "ulkatv.png";
+// const ICON_DOWN_ARROW = "DownArrow.png";
+// const BG_IMAGE_1 = "LoginIMG1.webp"; 
+// const BG_IMAGE_2 = "allnames.webp"; 
+// const AVATAR_DEFAULT = "Avatar16.png"; 
+// const AVATAR_LIST = ["Avatar15.png", "Avatar14.png", "Avatar13.png"];
+// const COLOR_PRIMARY = '#E50914'; 
+// const COLOR_FOCUS = '#e1001eff';   
+// const COLOR_HEADER = '#e6dc53ff';
+// const COLOR_4K = '#FFB800';      
+// const COLOR_WHITE = '#ffffff'; 
+// const COLOR_BLACK = '#020202ff';
+// const COLOR_DARK_GREY = '#1a1a1a'; 
+
+// const Icon = ({ name, size = 20, color = COLOR_WHITE }) => {
+//     const icons = {
+//         'eye-off-outline': '👁️‍🗨️', 
+//         'eye-outline': '👁️',       
+//         'chevron-down': '▼'
+//     };
+//     return (
+//         <span style={{ fontSize: size, color }}>{icons[name] || '❔'}</span>
+//     );
+// };
+
+// const GlobalInputStyles = () => (
+//     <style>
+//         {`
+//             ::selection {
+//                 background: ${COLOR_FOCUS}; 
+//                 color: ${COLOR_WHITE};
+//             }
+//             input:-webkit-autofill,
+//             input:-webkit-autofill:hover, 
+//             input:-webkit-autofill:focus, 
+//             input:-webkit-autofill:active {
+//                 -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important; 
+//                 -webkit-text-fill-color: ${COLOR_WHITE} !important; 
+//                 transition: background-color 5000s ease-in-out 0s; 
+//             }
+//             * {
+//                 margin: 0;
+//                 padding: 0;
+//                 box-sizing: border-box;
+//             }
+//             body {
+//                 overflow: hidden;
+//             }
+//             button:focus {
+//                 outline: none;
+//             }
+//         `}
+//     </style>
+// );
+
+// const SYMBOL_LAYOUT = [
+//   ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'],
+//   ['-', '_', '+', '=', '{', '}', '[', ']'],
+//   [';', ':', '"', "'", '<', '>', '?'],
+//   ['ABC', 'BACK'],
+//   ['SPACE', 'ENTER']
+// ];
+
+// const KEYBOARD_LAYOUT = [
+//   ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+//   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+//   ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+//   ['CAPS', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'BACK'],
+//   ['@#$', '.', 'SPACE', 'ENTER'],
+// ];
+
+// const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
+//   return (
+//     <div style={{
+//       width: '900px',
+//       padding: '20px',
+//       backgroundColor: 'rgba(20,20,20,0.95)',
+//       borderRadius: '15px',
+//       border: '1px solid #333',
+//       boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+//     }}>
+//       {layout.map((row, rIdx) => (
+//         <div key={rIdx} style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
+//           {row.map((key, cIdx) => {
+//             const focused =
+//               isKeyboardFocused &&
+//               focusedPos.row === rIdx &&
+//               focusedPos.col === cIdx;
+
+//             return (
+//               <div
+//                 key={key}
+//                 style={{
+//                   flex: key === 'SPACE' ? 4 : key === 'ENTER' || key === 'CAPS' ? 1.5 : 1,
+//                   height: '50px',
+//                   display: 'flex',
+//                   alignItems: 'center',
+//                   justifyContent: 'center',
+//                   backgroundColor: focused ? COLOR_FOCUS : '#333',
+//                   color: COLOR_WHITE,
+//                   borderRadius: '8px',
+//                   fontWeight: 'bold',
+//                   fontSize: '18px',
+//                   border: focused ? '3px solid white' : '1px solid transparent',
+//                   transform: focused ? 'scale(1.1)' : 'scale(1)',
+//                   transition: 'all 0.1s',
+//                   cursor: 'default',
+//                 }}
+//               >
+//                 {key === 'BACK'
+//                   ? '⌫'
+//                   : key.length === 1
+//                     ? (isCaps ? key.toUpperCase() : key.toLowerCase())
+//                     : key}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
+
+// // =======================================================
+// // *** ProfileScreen COMPONENT - With All Profiles Working ***
+// // =======================================================
+// const ProfileScreen = ({ mainUsername, accessToken, onCreateProfile, dummyProfiles, onSelectProfile, backgrounds, bgIndex }) => {
+//     // mainUsername is the permanent login username
+//     const MAX_PROFILES = 4; // Main username + 3 dummy profiles max
+    
+//     // Always start with the main username as the first profile
+//     const profileSlots = [
+//         { 
+//             id: 'main-profile', 
+//             name: mainUsername,
+//             image: AVATAR_DEFAULT, 
+//             isMainUser: true,
+//             profileType: 'main'
+//         }
+//     ];
+
+//     // Add dummy profiles
+//     dummyProfiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+//         profileSlots.push({ 
+//             ...p, 
+//             id: `dummy-${idx + 1}`,
+//             image: p.image || AVATAR_LIST[idx] || AVATAR_DEFAULT,
+//             isMainUser: false,
+//             profileType: 'dummy'
+//         });
+//     });
+    
+//     // Check if we can add more dummy profiles
+//     const canAddMoreDummies = dummyProfiles.length < (MAX_PROFILES - 1);
+    
+//     // Add Add Profile button as a slot if we can add more
+//     if (canAddMoreDummies) {
+//         profileSlots.push({ 
+//             id: 'add-profile', 
+//             name: 'Add Profile', 
+//             isAddButton: true,
+//             profileType: 'add'
+//         });
+//     }
+
+//     const [focusedId, setFocusedId] = useState(profileSlots[0]?.id || null);
+
+//     // Keyboard navigation for profiles
+//     useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
+
+//             switch (e.key) {
+//                 case 'ArrowRight':
+//                     e.preventDefault();
+//                     if (currentIndex < profileSlots.length - 1) {
+//                         setFocusedId(profileSlots[currentIndex + 1].id);
+//                     }
+//                     break;
+                    
+//                 case 'ArrowLeft':
+//                     e.preventDefault();
+//                     if (currentIndex > 0) {
+//                         setFocusedId(profileSlots[currentIndex - 1].id);
+//                     }
+//                     break;
+                    
+//                 case 'ArrowDown':
+//                 case 'ArrowUp':
+//                     // No vertical navigation needed
+//                     e.preventDefault();
+//                     break;
+                    
+//                 case 'Enter':
+//                     e.preventDefault();
+//                     const activeSlot = profileSlots.find(s => s.id === focusedId);
+//                     if (activeSlot) handleProfileClick(activeSlot);
+//                     break;
+                    
+//                 default:
+//                     break;
+//             }
+//         };
+
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [focusedId, profileSlots]);
+
+//     const handleProfileClick = (profileSlot) => {
+//         if (profileSlot.isAddButton) {
+//             // Add Profile button clicked
+//             onCreateProfile();
+//         } else {
+//             // All profiles (both main and dummy) can access HomeScreen
+//             onSelectProfile({
+//                 name: profileSlot.name,
+//                 type: profileSlot.profileType,
+//                 isMainUser: profileSlot.isMainUser
+//             }, accessToken);
+//         }
+//     };
+
+//     // Left panel styles
+//     const leftPanelStyle = {
+//         width: '35%',
+//         minWidth: '500px',
+//         height: '100vh',
+//         display: 'flex',
+//         flexDirection: 'column',
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//         backgroundColor: COLOR_BLACK,
+//         zIndex: 10,
+//         position: 'relative',
+//         padding: '40px 20px',
+//     };
+
+//     // Right panel styles
+//     const rightPanelStyle = {
+//         flex: 1,
+//         height: '100vh',
+//         position: 'relative',
+//         backgroundColor: COLOR_BLACK,
+//         overflow: 'hidden',
+//     };
+
+//     // Background container
+//     const backgroundContainerStyle = {
+//         position: 'absolute',
+//         top: 0,
+//         left: 0,
+//         width: '100%',
+//         height: '100%',
+//     };
+
+//     // Background image style
+//     const backgroundImageStyle = (isActive) => ({
+//         position: 'absolute',
+//         width: '100%',
+//         height: '100%',
+//         objectFit: 'cover',
+//         objectPosition: 'center',
+//         opacity: isActive ? 1 : 0,
+//         transition: 'opacity 1s ease-in-out',
+//     });
+
+//     // Overlay style
+//     const overlayStyle = {
+//         position: 'absolute',
+//         top: 0,
+//         left: 0,
+//         width: '100%',
+//         height: '100%',
+//         background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%)',
+//         zIndex: 2,
+//     };
+
+//     return (
+//         <div style={{ display: 'flex', width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0 }}>
+//             {/* Left Panel - Profile Selection */}
+//             <div style={leftPanelStyle}>
+//                 <h1 style={{ 
+//                     fontSize: '48px', 
+//                     fontWeight: 700, 
+//                     color: COLOR_WHITE, 
+//                     marginBottom: '50px',
+//                     textAlign: 'center',
+//                     width: '100%'
+//                 }}>
+//                     Who's Watching?
+//                 </h1>
+                
+//                 <div style={{
+//                     display: 'flex',
+//                     flexDirection: 'row',
+//                     flexWrap: 'wrap',
+//                     gap: '30px',
+//                     marginBottom: '40px',
+//                     justifyContent: 'center',
+//                     maxWidth: '800px',
+//                 }}>
+//                     {profileSlots.map((profileSlot) => {
+//                         const isFocused = focusedId === profileSlot.id;
+                        
+//                         if (profileSlot.isAddButton) {
+//                             // Add Profile button
+//                             return (
+//                                 <div key={profileSlot.id} style={{
+//                                     display: 'flex',
+//                                     flexDirection: 'column',
+//                                     alignItems: 'center',
+//                                     width: '140px',
+//                                 }}>
+//                                     <button
+//                                         onClick={() => handleProfileClick(profileSlot)}
+//                                         onFocus={() => setFocusedId(profileSlot.id)}
+//                                         style={{
+//                                             width: '140px',
+//                                             height: '140px',
+//                                             borderRadius: '70px',
+//                                             backgroundColor: '#333',
+//                                             display: 'flex',
+//                                             justifyContent: 'center',
+//                                             alignItems: 'center',
+//                                             border: isFocused ? `4px solid ${COLOR_FOCUS}` : '4px solid transparent',
+//                                             cursor: 'pointer',
+//                                             marginBottom: '12px',
+//                                             transition: 'all 250ms',
+//                                             transform: isFocused ? 'scale(1.1)' : 'scale(1)',
+//                                             boxShadow: isFocused ? `0 0 20px ${COLOR_FOCUS}` : 'none',
+//                                             outline: 'none',
+//                                         }}
+//                                     >
+//                                         <span style={{ color: COLOR_WHITE, fontSize: '70px', fontWeight: '300' }}>+</span>
+//                                     </button>
+//                                     <p style={{
+//                                         color: COLOR_WHITE,
+//                                         fontSize: '18px',
+//                                         fontWeight: 500,
+//                                         textAlign: 'center',
+//                                     }}>Add Profile</p>
+//                                 </div>
+//                             );
+//                         } else {
+//                             // Profile button (main or dummy)
+//                             return (
+//                                 <div key={profileSlot.id} style={{
+//                                     display: 'flex',
+//                                     flexDirection: 'column',
+//                                     alignItems: 'center',
+//                                     width: '140px',
+//                                 }}>
+//                                     <button
+//                                         onClick={() => handleProfileClick(profileSlot)}
+//                                         onFocus={() => setFocusedId(profileSlot.id)}
+//                                         style={{
+//                                             width: '140px',
+//                                             height: '140px',
+//                                             borderRadius: '70px',
+//                                             backgroundColor: profileSlot.isMainUser ? COLOR_PRIMARY : COLOR_DARK_GREY,
+//                                             display: 'flex',
+//                                             justifyContent: 'center',
+//                                             alignItems: 'center',
+//                                             border: isFocused ? `4px solid ${COLOR_FOCUS}` : '4px solid transparent',
+//                                             cursor: 'pointer',
+//                                             marginBottom: '12px',
+//                                             transition: 'all 250ms',
+//                                             transform: isFocused ? 'scale(1.1)' : 'scale(1)',
+//                                             boxShadow: isFocused ? `0 0 20px ${COLOR_FOCUS}` : 'none',
+//                                             outline: 'none',
+//                                         }}
+//                                     >
+//                                         <img src={profileSlot.image} alt={profileSlot.name} style={{
+//                                             width: '100%',
+//                                             height: '100%',
+//                                             borderRadius: '50%',
+//                                             objectFit: 'cover',
+//                                         }} />
+//                                     </button>
+//                                     <p style={{
+//                                         color: COLOR_WHITE,
+//                                         fontSize: '18px',
+//                                         fontWeight: 500,
+//                                         textAlign: 'center',
+//                                     }}>
+//                                         {profileSlot.name}
+//                                         {profileSlot.isMainUser && (
+//                                             <span style={{ 
+//                                                 display: 'block', 
+//                                                 fontSize: '12px', 
+//                                                 color: COLOR_HEADER,
+//                                                 marginTop: '4px'
+//                                             }}>
+//                                                 (Main)
+//                                             </span>
+//                                         )}
+//                                     </p>
+//                                 </div>
+//                             );
+//                         }
+//                     })}
+//                 </div>
+                
+//                 <img src={LOGO_ULKA} alt="Ulka TV" style={{ width: '250px', marginTop: '20px' }} />
+//             </div>
+
+//             {/* Right Panel - Fixed Background Images */}
+//             <div style={rightPanelStyle}>
+//                 <div style={backgroundContainerStyle}>
+//                     {/* Background Image 1 */}
+//                     <img 
+//                         src={backgrounds[0]} 
+//                         alt="Background 1"
+//                         style={backgroundImageStyle(bgIndex === 0)}
+//                     />
+                    
+//                     {/* Background Image 2 */}
+//                     <img 
+//                         src={backgrounds[1]} 
+//                         alt="Background 2"
+//                         style={backgroundImageStyle(bgIndex === 1)}
+//                     />
+//                 </div>
+
+//                 {/* Dark Gradient Overlay */}
+//                 <div style={overlayStyle}></div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// // =======================================================
+// // *** LoginScreen COMPONENT ***
+// // =======================================================
+// const LoginScreen = ({ startAtProfiles = false }) => {
+//     // --- State Management ---
+//     const [username, setUsername] = useState('');
+//     const [password, setPassword] = useState('');
+//     const [showPassword, setShowPassword] = useState(false);
+//     const [isCaps, setIsCaps] = useState(false);
+//     const [isSymbol, setIsSymbol] = useState(false);
+//     const layout = isSymbol ? SYMBOL_LAYOUT : KEYBOARD_LAYOUT;
+//     const [focusKey, setFocusKey] = useState('username');
+//     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
+//     const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
+//     const [loading, setLoading] = useState(false);
+//     const [apiError, setApiError] = useState('');
+//     const [accessToken, setAccessToken] = useState('');
+//     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+//     const [isViewingHome, setIsViewingHome] = useState(false);
+//     const [selectedProfile, setSelectedProfile] = useState(null);
+//     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+//     const [keyboardTarget, setKeyboardTarget] = useState('');
+//     const [dummyProfiles, setDummyProfiles] = useState([]);
+//     const [bgIndex, setBgIndex] = useState(0);
+    
+//     const backgrounds = [BG_IMAGE_1, BG_IMAGE_2];
+//     const DUMMY_APP_ID = "1";
+
+//     // Load saved credentials and dummy profiles on mount
+//     useEffect(() => {
+//         const savedUsername = localStorage.getItem('ulka_username');
+//         const savedPassword = localStorage.getItem('ulka_password');
+//         const savedToken = localStorage.getItem('ulka_token');
+        
+//         // Load dummy profiles for this user
+//         if (savedUsername) {
+//             const savedDummyProfiles = localStorage.getItem(`ulka_dummy_profiles_${savedUsername}`);
+//             if (savedDummyProfiles) {
+//                 try {
+//                     setDummyProfiles(JSON.parse(savedDummyProfiles));
+//                 } catch (e) {
+//                     console.error('Error parsing dummy profiles', e);
+//                 }
+//             }
+//         }
+
+//         if (savedUsername) setUsername(savedUsername);
+//         if (savedPassword) setPassword(savedPassword);
+        
+//         // If token exists, automatically log in
+//         if (savedToken && savedUsername) {
+//             setAccessToken(savedToken);
+//             setIsLoggedIn(true);
+//         }
+//     }, []);
+
+//     // Save dummy profiles to localStorage whenever they change
+//     useEffect(() => {
+//         if (username) {
+//             localStorage.setItem(`ulka_dummy_profiles_${username}`, JSON.stringify(dummyProfiles));
+//         }
+//     }, [dummyProfiles, username]);
+
+//     // Background image rotation
+//     useEffect(() => {
+//         const interval = setInterval(() => {
+//             setBgIndex((prev) => (prev + 1) % backgrounds.length);
+//         }, 8000);
+//         return () => clearInterval(interval);
+//     }, []);
+
+//     // Keyboard navigation for login screen
+//     useEffect(() => {
+//         const handleKeyDown = (e) => {
+//             if (isViewingHome || isCreatingProfile || isLoggedIn) return;
+
+//             e.preventDefault();
+
+//             switch (e.key) {
+//                 case 'ArrowUp':
+//                     if (focusKey === 'password') setFocusKey('username');
+//                     else if (focusKey === 'login_btn') setFocusKey('password');
+//                     else if (focusKey === 'keyboard') {
+//                         if (kbPos.row > 0) {
+//                             setKbPos(p => ({ ...p, row: p.row - 1 }));
+//                         } else {
+//                             setIsKeyboardVisible(false);
+//                             setFocusKey('login_btn');
+//                         }
+//                     }
+//                     break;
+
+//                 case 'ArrowDown':
+//                     if (focusKey === 'username') setFocusKey('password');
+//                     else if (focusKey === 'password') setFocusKey('login_btn');
+//                     else if (focusKey === 'login_btn') {
+//                         setFocusKey('keyboard');
+//                         setIsKeyboardVisible(true);
+//                         setKbPos({ row: 0, col: 4 });
+//                     } else if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({
+//                             ...p,
+//                             row: Math.min(p.row + 1, layout.length - 1),
+//                             col: Math.min(p.col, layout[Math.min(p.row + 1, layout.length - 1)].length - 1)
+//                         }));
+//                     }
+//                     break;
+
+//                 case 'ArrowLeft':
+//                     if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({ ...p, col: Math.max(0, p.col - 1) }));
+//                     }
+//                     break;
+
+//                 case 'ArrowRight':
+//                     if (focusKey === 'keyboard') {
+//                         setKbPos(p => ({
+//                             ...p,
+//                             col: Math.min(p.col + 1, layout[kbPos.row].length - 1)
+//                         }));
+//                     }
+//                     break;
+
+//                 case 'Enter':
+//                     handleRemoteEnter();
+//                     break;
+                    
+//                 default:
+//                     break;
+//             }
+//         };
+
+//         window.addEventListener('keydown', handleKeyDown);
+//         return () => window.removeEventListener('keydown', handleKeyDown);
+//     }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, isCreatingProfile, layout]);
+
+//     const handleRemoteEnter = () => {
+//         if (focusKey === 'username' || focusKey === 'password') {
+//             setKeyboardTarget(focusKey);
+//             setIsKeyboardVisible(true);
+//             setFocusKey('keyboard');
+//             return;
+//         }
+
+//         if (focusKey === 'login_btn') {
+//             handleLogin();
+//             return;
+//         }
+
+//         if (focusKey === 'keyboard') {
+//             const key = layout[kbPos.row][kbPos.col];
+
+//             if (key === 'CAPS') {
+//                 setIsCaps(p => !p);
+//                 return;
+//             }
+
+//             if (key === '@#$') {
+//                 setIsSymbol(true);
+//                 setKbPos({ row: 0, col: 0 });
+//                 return;
+//             }
+
+//             if (key === 'ABC') {
+//                 setIsSymbol(false);
+//                 setKbPos({ row: 0, col: 0 });
+//                 return;
+//             }
+
+//             if (key === 'BACK') {
+//                 handleKeyboardKeyPress('backspace');
+//                 return;
+//             }
+
+//             if (key === 'ENTER') {
+//                 if (keyboardTarget === 'username') {
+//                     setIsKeyboardVisible(false);
+//                     setKeyboardTarget('');
+//                     setFocusKey('password');
+//                     return;
+//                 }
+
+//                 if (keyboardTarget === 'password') {
+//                     setIsKeyboardVisible(false);
+//                     setKeyboardTarget('');
+//                     setFocusKey('login_btn');
+//                     return;
+//                 }
+//             }
+
+//             if (key === 'SPACE') {
+//                 handleKeyboardKeyPress(' ');
+//                 return;
+//             }
+
+//             handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
+//         }
+//     };
+
+//     const handleLogin = async () => {
+//         setIsKeyboardVisible(false);
+//         setKeyboardTarget('');
+
+//         // Demo login
+//         if (username === 'omi' && password === '123') {
+//             const dummyToken = "DUMMY_TOKEN_OMI";
+//             localStorage.setItem('ulka_username', username);
+//             localStorage.setItem('ulka_password', password);
+//             localStorage.setItem('ulka_token', dummyToken);
+//             setAccessToken(dummyToken);
+//             setIsLoggedIn(true);
+//             return;
+//         }
+
+//         if (loading) return;
+//         setApiError('');
+//         setLoading(true);
+
+//         const apiBody = {
+//             auth: `username=${username};password=${password};boxid=undefined;appid=${DUMMY_APP_ID};timestamp=${Date.now()}`,
+//         };
+
+//         try {
+//             const response = await axios.post('http://202.62.66.115:8080/apiv2/credentials/loginMini', apiBody);
+
+//             if (response.data?.status_code === 200 && response.data.response_object?.[0]?.access_token) {
+//                 const token = response.data.response_object[0].access_token;
+                
+//                 localStorage.setItem('ulka_username', username);
+//                 localStorage.setItem('ulka_password', password);
+//                 localStorage.setItem('ulka_token', token);
+//                 setAccessToken(token);
+//                 setIsLoggedIn(true);
+//             } else {
+//                 setApiError(response.data?.error_description || 'Login failed.');
+//             }
+//         } catch (error) {
+//             setApiError('Network error occurred.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     const handleSelectProfileAndNavigate = (profile, token) => {
+//         setSelectedProfile(profile);
+//         setIsViewingHome(true);
+//     };
+
+//     const handleSaveNewProfile = (newProfile) => {
+//         if (dummyProfiles.length < 3) {
+//             const avatarIndex = dummyProfiles.length;
+//             const image = AVATAR_LIST[avatarIndex] || AVATAR_DEFAULT;
+            
+//             const updatedProfiles = [
+//                 ...dummyProfiles,
+//                 {
+//                     id: `dummy-${dummyProfiles.length + 1}`,
+//                     name: newProfile.name,
+//                     image: image
+//                 }
+//             ];
+            
+//             setDummyProfiles(updatedProfiles);
+            
+//             // Save to localStorage immediately
+//             localStorage.setItem(`ulka_dummy_profiles_${username}`, JSON.stringify(updatedProfiles));
+//         }
+//         setIsCreatingProfile(false);
+//     };
+
+//     const handleKeyboardKeyPress = (key) => {
+//         if (key === 'backspace') {
+//             if (keyboardTarget === 'username') setUsername(prev => prev.slice(0, -1));
+//             if (keyboardTarget === 'password') setPassword(prev => prev.slice(0, -1));
+//         } else {
+//             if (keyboardTarget === 'username') setUsername(prev => prev + key);
+//             if (keyboardTarget === 'password') setPassword(prev => prev + key);
+//         }
+//     };
+
+//     const getInputBorder = (inputName) => {
+//         const baseStyle = {
+//             width: '100%',
+//             height: '50px',
+//             backgroundColor: 'rgba(255, 255, 255, 0.1)',
+//             border: '4px solid',
+//             borderRadius: '8px',
+//             padding: '0 16px',
+//             display: 'flex',
+//             alignItems: 'center',
+//             marginBottom: '20px',
+//             transition: 'all 0.3s',
+//             cursor: 'text',
+//         };
+
+//         if (focusKey === inputName) {
+//             return {
+//                 ...baseStyle,
+//                 borderColor: COLOR_FOCUS,
+//                 boxShadow: `0 0 10px ${COLOR_FOCUS}`,
+//                 backgroundColor: 'rgba(255, 255, 255, 0.15)',
+//             };
+//         } else {
+//             return {
+//                 ...baseStyle,
+//                 borderColor: '#444',
+//             };
+//         }
+//     };
+
+//     // Main container styles
+//     const mainContainerStyle = {
+//         width: '100vw',
+//         height: '100vh',
+//         display: 'flex',
+//         backgroundColor: COLOR_BLACK,
+//         overflow: 'hidden',
+//         position: 'relative',
+//     };
+
+//     // Left panel styles
+//     const leftPanelStyle = {
+//         width: '35%',
+//         minWidth: '500px',
+//         height: '100vh',
+//         display: 'flex',
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//         backgroundColor: COLOR_BLACK,
+//         zIndex: 10,
+//         position: 'relative',
+//     };
+
+//     // Login form container
+//     const loginFormContainerStyle = {
+//         width: '100%',
+//         maxWidth: '400px',
+//         display: 'flex',
+//         flexDirection: 'column',
+//         alignItems: 'center',
+//         justifyContent: 'center',
+//         padding: '40px 20px',
+//     };
+
+//     // Right panel styles
+//     const rightPanelStyle = {
+//         flex: 1,
+//         height: '100vh',
+//         position: 'relative',
+//         backgroundColor: COLOR_BLACK,
+//         overflow: 'hidden',
+//     };
+
+//     // Background container
+//     const backgroundContainerStyle = {
+//         position: 'absolute',
+//         top: 0,
+//         left: 0,
+//         width: '100%',
+//         height: '100%',
+//     };
+
+//     // Background image style
+//     const backgroundImageStyle = (isActive) => ({
+//         position: 'absolute',
+//         width: '100%',
+//         height: '100%',
+//         objectFit: 'cover',
+//         objectPosition: 'center',
+//         opacity: isActive ? 1 : 0,
+//         transition: 'opacity 1s ease-in-out',
+//     });
+
+//     // Overlay style
+//     const overlayStyle = {
+//         position: 'absolute',
+//         top: 0,
+//         left: 0,
+//         width: '100%',
+//         height: '100%',
+//         background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%)',
+//         zIndex: 2,
+//     };
+
+//     return (
+//         <div style={mainContainerStyle}>
+//             <GlobalInputStyles />
+
+//             {/* Home Screen - Accessible by all profiles */}
+//             {isViewingHome && isLoggedIn && selectedProfile && (
+//                 <HomeScreen
+//                     profileName={selectedProfile.name}
+//                     profileType={selectedProfile.type}
+//                     accessToken={accessToken}
+//                     onGoBackToProfiles={() => setIsViewingHome(false)}
+//                 />
+//             )}
+
+//             {/* Create Profile Screen */}
+//             {isCreatingProfile && (
+//                 <CreateProfileScreen
+//                     username={username}
+//                     onGoBack={() => setIsCreatingProfile(false)}
+//                     onSaveProfile={handleSaveNewProfile}
+//                 />
+//             )}
+
+//             {/* Profile Screen - All profiles working */}
+//             {isLoggedIn && !isCreatingProfile && !isViewingHome && (
+//                 <ProfileScreen
+//                     mainUsername={username}
+//                     accessToken={accessToken}
+//                     onCreateProfile={() => {
+//                         if (dummyProfiles.length < 3) {
+//                             setIsCreatingProfile(true);
+//                         } else {
+//                             alert("Maximum 3 dummy profiles reached. You cannot add more.");
+//                         }
+//                     }}
+//                     dummyProfiles={dummyProfiles}
+//                     onSelectProfile={handleSelectProfileAndNavigate}
+//                     backgrounds={backgrounds}
+//                     bgIndex={bgIndex}
+//                 />
+//             )}
+
+//             {/* Login Screen */}
+//             {!isLoggedIn && (
+//                 <>
+//                     {/* Left Panel - Login Form */}
+//                     <div style={leftPanelStyle}>
+//                         <div style={loginFormContainerStyle}>
+//                             {/* Header Text */}
+//                             <div style={{ width: '100%', textAlign: 'center', marginBottom: '30px' }}>
+//                                 <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '2px', color: COLOR_HEADER, lineHeight: '1.3' }}>
+//                                     THE FUTURE OF
+//                                 </h2>
+//                                 <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '2px', color: COLOR_HEADER, lineHeight: '1.3' }}>
+//                                     ENTERTAINMENT
+//                                 </h2>
+//                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+//                                 <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>IS HERE</h2>
+//                                 <div style={{ width: '40px', height: '40px', marginLeft: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+//                                     <img src={ICON_DOWN_ARROW} alt="Down Arrow" style={{ width: '30px', height: '30px' }} />
+//                                 </div>
+//                             </div>
+//                             </div>
+
+//                             {/* Login Form */}
+//                             <div style={{ width: '100%' }}>
+//                                 {/* Username Input */}
+//                                 <div 
+//                                     style={getInputBorder('username')}
+//                                     onClick={() => {
+//                                         setFocusKey('username');
+//                                         setKeyboardTarget('username');
+//                                         setIsKeyboardVisible(true);
+//                                     }}
+//                                 >
+//                                     <input
+//                                         style={{ 
+//                                             flex: 1, 
+//                                             background: 'transparent', 
+//                                             color: COLOR_WHITE, 
+//                                             border: 'none', 
+//                                             outline: 'none', 
+//                                             fontSize: '16px',
+//                                             width: '100%',
+//                                         }}
+//                                         type="text"
+//                                         placeholder="Username"
+//                                         value={username}
+//                                         readOnly={true}
+//                                     />
+//                                 </div>
+
+//                                 {/* Password Input */}
+//                                 <div 
+//                                     style={getInputBorder('password')}
+//                                     onClick={() => {
+//                                         setFocusKey('password');
+//                                         setKeyboardTarget('password');
+//                                         setIsKeyboardVisible(true);
+//                                     }}
+//                                 >
+//                                     <input
+//                                         style={{ 
+//                                             flex: 1, 
+//                                             background: 'transparent', 
+//                                             color: COLOR_WHITE, 
+//                                             border: 'none', 
+//                                             outline: 'none', 
+//                                             fontSize: '16px',
+//                                             width: '100%',
+//                                         }}
+//                                         type={showPassword ? "text" : "password"}
+//                                         placeholder="Password"
+//                                         value={password}
+//                                         readOnly={true}
+//                                     />
+//                                     <button 
+//                                         onClick={(e) => {
+//                                             e.stopPropagation();
+//                                             setShowPassword(!showPassword);
+//                                         }} 
+//                                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px' }}
+//                                     >
+//                                         <Icon name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} />
+//                                     </button>
+//                                 </div>
+
+//                                 {/* Error Message */}
+//                                 {apiError && (
+//                                     <p style={{ color: COLOR_PRIMARY, marginBottom: '15px', fontSize: '14px', textAlign: 'center' }}>
+//                                         ⚠️ {apiError}
+//                                     </p>
+//                                 )}
+
+//                                 {/* Sign In Button */}
+//                                 <button
+//                                     onClick={handleLogin}
+//                                     style={{
+//                                         width: '100%',
+//                                         height: '50px',
+//                                         borderRadius: '8px',
+//                                         fontWeight: 'bold',
+//                                         fontSize: '18px',
+//                                         marginBottom: '25px',
+//                                         backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY,
+//                                         border: focusKey === 'login_btn' ? '3px solid white' : 'none',
+//                                         cursor: 'pointer',
+//                                         transition: 'all 0.2s',
+//                                         transform: focusKey === 'login_btn' ? 'scale(1.02)' : 'scale(1)',
+//                                         color: COLOR_WHITE,
+//                                         outline: 'none',
+//                                     }}
+//                                     onMouseEnter={() => setFocusKey('login_btn')}
+//                                 >
+//                                     {loading ? 'Signing In...' : 'Sign In'}
+//                                 </button>
+
+//                                 {/* Info Section */}
+//                                 <div style={{ textAlign: 'center', width: '100%', marginBottom: '25px' }}>
+//                                     <a href="#" style={{ fontSize: '16px', fontWeight: 'bold', textDecoration: 'underline', color: COLOR_HEADER }}>
+//                                         Privacy Policy
+//                                     </a>
+//                                     <p style={{ fontSize: '18px', fontWeight: 'bold', color: COLOR_HEADER, marginTop: '10px' }}>
+//                                         <span style={{ color: COLOR_4K, fontSize: '26px' }}>4K</span> Ultra HD Streaming
+//                                     </p>
+//                                 </div>
+
+//                                 {/* Device Tags */}
+//                                 <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+//                                     {["SmartTV", "STB", "Stick", "Mobile"].map((device) => (
+//                                         <span
+//                                             key={device}
+//                                             style={{
+//                                                 color: COLOR_WHITE,
+//                                                 fontSize: '14px',
+//                                                 fontWeight: 'bold',
+//                                                 padding: '6px 15px',
+//                                                 borderRadius: '20px',
+//                                                 backgroundColor: 'rgba(229, 9, 20, 0.8)',
+//                                                 border: 'none',
+//                                             }}
+//                                         >
+//                                             {device}
+//                                         </span>
+//                                     ))}
+//                                 </div>
+//                             </div>
+
+//                             {/* Logo */}
+//                             <img src={LOGO_ULKA} alt="Ulka TV" style={{ width: '350px', marginTop: '30px' }} />
+//                         </div>
+//                     </div>
+
+//                     {/* Right Panel - Fixed Background Images */}
+//                     <div style={rightPanelStyle}>
+//                         <div style={backgroundContainerStyle}>
+//                             {/* Background Image 1 */}
+//                             <img 
+//                                 src={backgrounds[0]} 
+//                                 alt="Background 1"
+//                                 style={backgroundImageStyle(bgIndex === 0)}
+//                             />
+                            
+//                             {/* Background Image 2 */}
+//                             <img 
+//                                 src={backgrounds[1]} 
+//                                 alt="Background 2"
+//                                 style={backgroundImageStyle(bgIndex === 1)}
+//                             />
+//                         </div>
+
+//                         {/* Dark Gradient Overlay */}
+//                         <div style={overlayStyle}></div>
+//                     </div>
+//                 </>
+//             )}
+
+//             {/* Custom Keyboard */}
+//             <div style={{
+//                 position: 'fixed',
+//                 bottom: isKeyboardVisible ? '30px' : '-600px',
+//                 left: '50%',
+//                 transform: 'translateX(-50%)',
+//                 zIndex: 1000,
+//                 transition: 'bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+//                 display: 'flex',
+//                 justifyContent: 'center',
+//                 pointerEvents: isKeyboardVisible ? 'auto' : 'none',
+//             }}>
+//                 <CustomKeyboard
+//                     layout={layout}
+//                     isCaps={isCaps}
+//                     focusedPos={kbPos}
+//                     isKeyboardFocused={focusKey === 'keyboard'}
+//                 />
+//             </div>
+//         </div>
+//     );
+// };
+
+// export default LoginScreen;
+
+
+
+
+
+
+
+// src/components/LoginScreen.jsx - Fixed with proper navigation and all profiles working
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios'; 
 import CreateProfileScreen from './CreateProfileScreen'; 
@@ -925,6 +2924,7 @@ const Icon = ({ name, size = 20, color = COLOR_WHITE }) => {
         <span style={{ fontSize: size, color }}>{icons[name] || '❔'}</span>
     );
 };
+
 const GlobalInputStyles = () => (
     <style>
         {`
@@ -940,6 +2940,17 @@ const GlobalInputStyles = () => (
                 -webkit-text-fill-color: ${COLOR_WHITE} !important; 
                 transition: background-color 5000s ease-in-out 0s; 
             }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                overflow: hidden;
+            }
+            button:focus {
+                outline: none;
+            }
         `}
     </style>
 );
@@ -951,7 +2962,6 @@ const SYMBOL_LAYOUT = [
   ['ABC', 'BACK'],
   ['SPACE', 'ENTER']
 ];
-
 
 const KEYBOARD_LAYOUT = [
   ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
@@ -968,7 +2978,8 @@ const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
       padding: '20px',
       backgroundColor: 'rgba(20,20,20,0.95)',
       borderRadius: '15px',
-      border: '1px solid #333'
+      border: '1px solid #333',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
     }}>
       {layout.map((row, rIdx) => (
         <div key={rIdx} style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -994,7 +3005,8 @@ const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
                   fontSize: '18px',
                   border: focused ? '3px solid white' : '1px solid transparent',
                   transform: focused ? 'scale(1.1)' : 'scale(1)',
-                  transition: 'all 0.1s'
+                  transition: 'all 0.1s',
+                  cursor: 'default',
                 }}
               >
                 {key === 'BACK'
@@ -1011,286 +3023,373 @@ const CustomKeyboard = ({ layout, isCaps, focusedPos, isKeyboardFocused }) => {
   );
 };
 
-
 // =======================================================
-// *** ProfileScreen COMPONENT (Unchanged) ***
+// *** ProfileScreen COMPONENT - With All Profiles Working ***
 // =======================================================
-
-const ProfileScreen = ({ accessToken, onCreateProfile, profiles, onSelectProfile, onLogout }) => {
-    const storedUsername = localStorage.getItem('ulka_username') || "User";
+const ProfileScreen = ({ mainUsername, accessToken, onCreateProfile, dummyProfiles, onSelectProfile, backgrounds, bgIndex }) => {
+    // mainUsername is the permanent login username
+    const MAX_PROFILES = 4; // Main username + 3 dummy profiles max
     
-    const MAX_PROFILES = 4;
-    const profileSlots = [];
+    // Always start with the main username as the first profile
+    const profileSlots = [
+        { 
+            id: 'main-profile', 
+            name: mainUsername,
+            image: AVATAR_DEFAULT, 
+            isMainUser: true,
+            profileType: 'main'
+        }
+    ];
 
-    profileSlots.push({ 
-        id: 'slot-1', 
-        name: storedUsername,
-        image: AVATAR_DEFAULT, 
-        isFixed: true 
-    });
-
-    profiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
+    // Add dummy profiles
+    dummyProfiles.slice(0, MAX_PROFILES - 1).forEach((p, idx) => {
         profileSlots.push({ 
             ...p, 
-            id: `slot-${idx + 2}`,
-            image: p.image || AVATAR_LIST[idx] || AVATAR_DEFAULT 
+            id: `dummy-${idx + 1}`,
+            image: p.image || AVATAR_LIST[idx] || AVATAR_DEFAULT,
+            isMainUser: false,
+            profileType: 'dummy'
         });
     });
     
-    const isAddSlotAvailable = profileSlots.length < MAX_PROFILES;
-    if (isAddSlotAvailable) {
+    // Check if we can add more dummy profiles
+    const canAddMoreDummies = dummyProfiles.length < (MAX_PROFILES - 1);
+    
+    // Add Add Profile button as a slot if we can add more
+    if (canAddMoreDummies) {
         profileSlots.push({ 
-            id: 'slot-add', 
+            id: 'add-profile', 
             name: 'Add Profile', 
-            isAddButton: true 
+            isAddButton: true,
+            profileType: 'add'
         });
     }
 
     const [focusedId, setFocusedId] = useState(profileSlots[0]?.id || null);
 
+    // Keyboard navigation for profiles
     useEffect(() => {
         const handleKeyDown = (e) => {
             const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
 
-            if (e.key === 'ArrowRight') {
-                if (currentIndex < profileSlots.length - 1) {
-                    setFocusedId(profileSlots[currentIndex + 1].id);
-                }
-            } else if (e.key === 'ArrowLeft') {
-                if (currentIndex > 0) {
-                    setFocusedId(profileSlots[currentIndex - 1].id);
-                }
-            } else if (e.key === 'ArrowDown') {
-                setFocusedId('logout-btn');
-            } else if (e.key === 'ArrowUp') {
-                if (focusedId === 'logout-btn') {
-                    setFocusedId(profileSlots[0].id);
-                }
-            } else if (e.key === 'Enter') {
-                if (focusedId === 'logout-btn') {
-                    onLogout();
-                } else {
+            switch (e.key) {
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (currentIndex < profileSlots.length - 1) {
+                        setFocusedId(profileSlots[currentIndex + 1].id);
+                    }
+                    break;
+                    
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (currentIndex > 0) {
+                        setFocusedId(profileSlots[currentIndex - 1].id);
+                    }
+                    break;
+                    
+                case 'ArrowDown':
+                case 'ArrowUp':
+                    // No vertical navigation needed
+                    e.preventDefault();
+                    break;
+                    
+                case 'Enter':
+                    e.preventDefault();
                     const activeSlot = profileSlots.find(s => s.id === focusedId);
-                    if (activeSlot) handleProfileClick(activeSlot.name);
-                }
+                    if (activeSlot) handleProfileClick(activeSlot);
+                    break;
+                    
+                default:
+                    break;
             }
         };
+
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [focusedId, profileSlots]);
 
-    const handleProfileClick = (profileName) => {
-        if (profileName === 'Add Profile') {
+    const handleProfileClick = (profileSlot) => {
+        if (profileSlot.isAddButton) {
+            // Add Profile button clicked
             onCreateProfile();
         } else {
-            localStorage.setItem('ulka_username', profileName); 
-            
-
-            const existingToken = localStorage.getItem('ulka_token');
-            if (existingToken) {
-                onSelectProfile(profileName, existingToken);
-            } else {
-                onSelectProfile(profileName);
-            }
+            // All profiles (both main and dummy) can access HomeScreen
+            // For dummy profiles, we just pass a different identifier
+            onSelectProfile({
+                name: profileSlot.name,
+                type: profileSlot.profileType,
+                isMainUser: profileSlot.isMainUser
+            }, accessToken);
         }
     };
 
-    const styles = {
-        profileView: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            backgroundColor: COLOR_BLACK,
-            padding: '50px',
-        },
-        cardTitle: {
-            fontSize: '40px',
-            fontWeight: 700,
-            color: COLOR_WHITE,
-            marginBottom: '40px',
-        },
-        profileButtonsContainer: {
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: '50px', 
-            marginBottom: '20px',
-            justifyContent: 'center',
-            maxWidth: '380px', 
-        },
-        profileWrapper: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '120px', 
-        },
-        profileButton: {
-            width: '120px',
-            height: '120px',
-            borderRadius: '60px',
-            backgroundColor: COLOR_DARK_GREY,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            border: '4px solid transparent',
-            cursor: 'pointer',
-            marginBottom: '10px',
-            transition: 'border-color 250ms, transform 250ms',
-        },
-        addProfileButton: {
-            width: '120px',
-            height: '120px',
-            borderRadius: '60px',
-            backgroundColor: '#333', 
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            border: '4px solid transparent',
-            cursor: 'pointer',
-            marginBottom: '10px',
-            transition: 'border-color 250ms, transform 250ms',
-        },
-        focused: {
-            borderColor: COLOR_FOCUS,
-            transform: 'scale(1.1)',
-        },
-        imageIcon: {
-            width: '100%',
-            height: '100%',
-            borderRadius: '50%',
-            objectFit: 'cover',
-        },
-        addIconText: {
-            color: COLOR_WHITE, 
-            fontSize: '60px',
-        },
-        profileButtonText: {
-            color: COLOR_WHITE,
-            fontSize: '20px',
-            fontWeight: 500,
-            textAlign: 'center',
-        },
-        logoInCard: {
-            width: '400px',
-        },
+    // Left panel styles
+    const leftPanelStyle = {
+        width: '35%',
+        minWidth: '500px',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLOR_BLACK,
+        zIndex: 10,
+        position: 'relative',
+        padding: '40px 20px',
     };
-    
+
+    // Right panel styles
+    const rightPanelStyle = {
+        flex: 1,
+        height: '100vh',
+        position: 'relative',
+        backgroundColor: COLOR_BLACK,
+        overflow: 'hidden',
+    };
+
+    // Background container
+    const backgroundContainerStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+    };
+
+    // Background image style
+    const backgroundImageStyle = (isActive) => ({
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+        opacity: isActive ? 1 : 0,
+        transition: 'opacity 1s ease-in-out',
+    });
+
+    // Overlay style
+    const overlayStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%)',
+        zIndex: 2,
+    };
+
     return (
-            <div style={styles.profileView}>
-                <h1 style={styles.cardTitle}>Who's Watching?</h1>
+        <div style={{ display: 'flex', width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0 }}>
+            {/* Left Panel - Profile Selection */}
+            <div style={leftPanelStyle}>
+                <h1 style={{ 
+                    fontSize: '48px', 
+                    fontWeight: 700, 
+                    color: COLOR_WHITE, 
+                    marginBottom: '50px',
+                    textAlign: 'center',
+                    width: '100%'
+                }}>
+                    Who's Watching?
+                </h1>
                 
-                <div style={styles.profileButtonsContainer}>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: '30px',
+                    marginBottom: '40px',
+                    justifyContent: 'center',
+                    maxWidth: '800px',
+                }}>
                     {profileSlots.map((profileSlot) => {
                         const isFocused = focusedId === profileSlot.id;
                         
-                        return (
-                            <div key={profileSlot.id} style={styles.profileWrapper}>
-                                <button
-                                    onClick={() => handleProfileClick(profileSlot.name)} 
-                                    onFocus={() => setFocusedId(profileSlot.id)}
-                                    style={{
-                                        ... (profileSlot.isAddButton ? styles.addProfileButton : styles.profileButton),
-                                        ...(isFocused ? styles.focused : {})
-                                    }}
-                                >
-                                    {profileSlot.isAddButton ? (
-                                        <span style={styles.addIconText}>+</span>
-                                    ) : (
-                                        <img src={profileSlot.image} alt={profileSlot.name} style={styles.imageIcon} />
-                                    )}
-                                </button>
-                                <p style={styles.profileButtonText}>{profileSlot.name}</p>
-                            </div>
-                        );
+                        if (profileSlot.isAddButton) {
+                            // Add Profile button
+                            return (
+                                <div key={profileSlot.id} style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    width: '140px',
+                                }}>
+                                    <button
+                                        onClick={() => handleProfileClick(profileSlot)}
+                                        onFocus={() => setFocusedId(profileSlot.id)}
+                                        style={{
+                                            width: '140px',
+                                            height: '140px',
+                                            borderRadius: '70px',
+                                            backgroundColor: '#333',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            border: isFocused ? `4px solid ${COLOR_FOCUS}` : '4px solid transparent',
+                                            cursor: 'pointer',
+                                            marginBottom: '12px',
+                                            transition: 'all 250ms',
+                                            transform: isFocused ? 'scale(1.1)' : 'scale(1)',
+                                            boxShadow: isFocused ? `0 0 20px ${COLOR_FOCUS}` : 'none',
+                                            outline: 'none',
+                                        }}
+                                    >
+                                        <span style={{ color: COLOR_WHITE, fontSize: '70px', fontWeight: '300' }}>+</span>
+                                    </button>
+                                    <p style={{
+                                        color: COLOR_WHITE,
+                                        fontSize: '18px',
+                                        fontWeight: 500,
+                                        textAlign: 'center',
+                                    }}>Add Profile</p>
+                                </div>
+                            );
+                        } else {
+                            // Profile button (main or dummy)
+                            return (
+                                <div key={profileSlot.id} style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    width: '140px',
+                                }}>
+                                    <button
+                                        onClick={() => handleProfileClick(profileSlot)}
+                                        onFocus={() => setFocusedId(profileSlot.id)}
+                                        style={{
+                                            width: '140px',
+                                            height: '140px',
+                                            borderRadius: '70px',
+                                            backgroundColor: profileSlot.isMainUser ? COLOR_PRIMARY : COLOR_DARK_GREY,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            border: isFocused ? `4px solid ${COLOR_FOCUS}` : '4px solid transparent',
+                                            cursor: 'pointer',
+                                            marginBottom: '12px',
+                                            transition: 'all 250ms',
+                                            transform: isFocused ? 'scale(1.1)' : 'scale(1)',
+                                            boxShadow: isFocused ? `0 0 20px ${COLOR_FOCUS}` : 'none',
+                                            outline: 'none',
+                                        }}
+                                    >
+                                        <img src={profileSlot.image} alt={profileSlot.name} style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                        }} />
+                                    </button>
+                                    <p style={{
+                                        color: COLOR_WHITE,
+                                        fontSize: '18px',
+                                        fontWeight: 500,
+                                        textAlign: 'center',
+                                    }}>
+                                        {profileSlot.name}
+                                        {profileSlot.isMainUser && (
+                                            <span style={{ 
+                                                display: 'block', 
+                                                fontSize: '12px', 
+                                                color: COLOR_HEADER,
+                                                marginTop: '4px'
+                                            }}>
+                                                (Main)
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            );
+                        }
                     })}
                 </div>
                 
-                <img src={LOGO_ULKA} alt="Ulka TV" style={styles.logoInCard} />
-                
+                <img src={LOGO_ULKA} alt="Ulka TV" style={{ width: '250px', marginTop: '20px' }} />
             </div>
-        );
-    };
+
+            {/* Right Panel - Fixed Background Images */}
+            <div style={rightPanelStyle}>
+                <div style={backgroundContainerStyle}>
+                    {/* Background Image 1 */}
+                    <img 
+                        src={backgrounds[0]} 
+                        alt="Background 1"
+                        style={backgroundImageStyle(bgIndex === 0)}
+                    />
+                    
+                    {/* Background Image 2 */}
+                    <img 
+                        src={backgrounds[1]} 
+                        alt="Background 2"
+                        style={backgroundImageStyle(bgIndex === 1)}
+                    />
+                </div>
+
+                {/* Dark Gradient Overlay */}
+                <div style={overlayStyle}></div>
+            </div>
+        </div>
+    );
+};
 
 // =======================================================
-// *** LoginScreen COMPONENT (Updated with Keyboard Logic) ***
+// *** LoginScreen COMPONENT ***
 // =======================================================
 const LoginScreen = ({ startAtProfiles = false }) => {
     // --- State Management ---
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [activeInput, setActiveInput] = useState('');
     const [isCaps, setIsCaps] = useState(false);
     const [isSymbol, setIsSymbol] = useState(false);
-    const [focusedId, setFocusedId] = useState('slot-1'); 
     const layout = isSymbol ? SYMBOL_LAYOUT : KEYBOARD_LAYOUT;
-    const [focusKey, setFocusKey] = useState('username'); 
+    const [focusKey, setFocusKey] = useState('username');
     const [kbPos, setKbPos] = useState({ row: 0, col: 0 });
     const [isLoggedIn, setIsLoggedIn] = useState(startAtProfiles);
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState('');
     const [accessToken, setAccessToken] = useState('');
-    const [isCreatingProfile, setIsCreatingProfile] = useState(false); 
-    
-    const [isViewingHome, setIsViewingHome] = useState(false); 
-    const [selectedProfile, setSelectedProfile] = useState(''); 
-
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); 
-    const [keyboardTarget, setKeyboardTarget] = useState(''); 
-    const keyboardRef = useRef(null); 
-    const [profiles, setProfiles] = useState([]); 
+    const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+    const [isViewingHome, setIsViewingHome] = useState(false);
+    const [selectedProfile, setSelectedProfile] = useState(null);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+    const [keyboardTarget, setKeyboardTarget] = useState('');
+    const [dummyProfiles, setDummyProfiles] = useState([]);
     const [bgIndex, setBgIndex] = useState(0);
-    const backgrounds = [BG_IMAGE_1, BG_IMAGE_2];
-    const DUMMY_MAC_ADDRESS = "00:00:00:00:00:00";
-    const DUMMY_FIREBASE_TOKEN = "web_dummy_firebase_token";
-    const DUMMY_FIRMWARE_VERSION = "1.0.0_web";
-    const DUMMY_APP_ID = "1";
-    const DUMMY_IP = "127.0.0.1";
-
-    useEffect(() => {
-    const savedUsername = localStorage.getItem('ulka_username');
-    const savedPassword = localStorage.getItem('ulka_password');
-
-    if (savedUsername) setUsername(savedUsername);
-    if (savedPassword) setPassword(savedPassword);
-    }, []);
     
+    const backgrounds = [BG_IMAGE_1, BG_IMAGE_2];
+    const DUMMY_APP_ID = "1";
 
-    const profileSlots = [];
-        profileSlots.push({ id: 'slot-1', name: username, image: AVATAR_DEFAULT });
-        profiles.slice(0, 3).forEach((p, idx) => {
-            profileSlots.push({ ...p, id: `slot-${idx + 2}`, image: p.image || AVATAR_LIST[idx] });
-        });
-        if (profileSlots.length < 4) {
-            profileSlots.push({ id: 'slot-add', name: 'Add Profile', isAddButton: true });
+    // Load saved credentials
+    useEffect(() => {
+        const savedUsername = localStorage.getItem('ulka_username');
+        const savedPassword = localStorage.getItem('ulka_password');
+        const savedToken = localStorage.getItem('ulka_token');
+
+        if (savedUsername) setUsername(savedUsername);
+        if (savedPassword) setPassword(savedPassword);
+        
+        // If token exists, automatically log in
+        if (savedToken && savedUsername) {
+            setAccessToken(savedToken);
+            setIsLoggedIn(true);
         }
+    }, []);
 
-      useEffect(() => {
+    // Background image rotation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBgIndex((prev) => (prev + 1) % backgrounds.length);
+        }, 8000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Keyboard navigation for login screen
+    useEffect(() => {
         const handleKeyDown = (e) => {
-            if (isViewingHome) return;
+            if (isViewingHome || isCreatingProfile || isLoggedIn) return;
 
-            if (isLoggedIn && !isCreatingProfile) {
-                const profileSlotsCount = profiles.length + 1;
-                const addProfileExists = profileSlotsCount < 4;
-                const totalItems = addProfileExists ? profileSlotsCount + 1 : profileSlotsCount;
-                const currentIndex = profileSlots.findIndex(slot => slot.id === focusedId);
-
-                switch (e.key) {
-                    case 'ArrowLeft':
-                        if (currentIndex > 0) {
-                            setFocusedId(profileSlots[currentIndex - 1].id);
-                        }
-                        break;
-                    case 'ArrowRight':
-                        if (currentIndex < profileSlots.length - 1) {
-                            setFocusedId(profileSlots[currentIndex + 1].id);
-                        }
-                        break;            
-                }
-                return; 
-            }
+            e.preventDefault();
 
             switch (e.key) {
                 case 'ArrowUp':
@@ -1313,8 +3412,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                         setFocusKey('keyboard');
                         setIsKeyboardVisible(true);
                         setKbPos({ row: 0, col: 4 });
-                    } 
-                    else if (focusKey === 'keyboard') {
+                    } else if (focusKey === 'keyboard') {
                         setKbPos(p => ({
                             ...p,
                             row: Math.min(p.row + 1, layout.length - 1),
@@ -1341,105 +3439,91 @@ const LoginScreen = ({ startAtProfiles = false }) => {
                 case 'Enter':
                     handleRemoteEnter();
                     break;
+                    
+                default:
+                    break;
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, focusedId, profiles, isCreatingProfile]);
-
+    }, [focusKey, kbPos, isKeyboardVisible, isLoggedIn, isViewingHome, isCreatingProfile, layout]);
 
     const handleRemoteEnter = () => {
-    if (focusKey === 'username' || focusKey === 'password') {
-        setKeyboardTarget(focusKey);
-        setIsKeyboardVisible(true);
-        setFocusKey('keyboard');
-        return;
-    }
-
-    if (focusKey === 'login_btn') {
-        handleLogin();
-        return;
-    }
-
-    if (focusKey === 'keyboard') {
-        const key = layout[kbPos.row][kbPos.col];
-
-        if (key === 'CAPS') {
-        setIsCaps(p => !p);
-        return;
-        }
-
-        if (key === '@#$') {
-        setIsSymbol(true);
-        setKbPos({ row: 0, col: 0 });
-        return;
-        }
-
-        if (key === 'ABC') {
-        setIsSymbol(false);
-        setKbPos({ row: 0, col: 0 });
-        return;
-        }
-
-        if (key === 'BACK') {
-        handleKeyboardKeyPress('backspace');
-        return;
-        }
-        if (key === 'ENTER') {
-
-        // 🔹 Username complete
-        if (keyboardTarget === 'username') {
-            setIsKeyboardVisible(false);   // ✅ keyboard close
-            setKeyboardTarget('');
-            setFocusKey('password');       // ✅ focus password
+        if (focusKey === 'username' || focusKey === 'password') {
+            setKeyboardTarget(focusKey);
+            setIsKeyboardVisible(true);
+            setFocusKey('keyboard');
             return;
         }
 
-        // 🔹 Password complete
-        if (keyboardTarget === 'password') {
-            setIsKeyboardVisible(false);   // ✅ keyboard close
-            setKeyboardTarget('');
-            setFocusKey('login_btn');      // ✅ focus sign in
+        if (focusKey === 'login_btn') {
+            handleLogin();
             return;
         }
-        }
 
-        if (key === 'SPACE') {
-        handleKeyboardKeyPress(' ');
-        return;
-        }
+        if (focusKey === 'keyboard') {
+            const key = layout[kbPos.row][kbPos.col];
 
-        handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
-    }
+            if (key === 'CAPS') {
+                setIsCaps(p => !p);
+                return;
+            }
+
+            if (key === '@#$') {
+                setIsSymbol(true);
+                setKbPos({ row: 0, col: 0 });
+                return;
+            }
+
+            if (key === 'ABC') {
+                setIsSymbol(false);
+                setKbPos({ row: 0, col: 0 });
+                return;
+            }
+
+            if (key === 'BACK') {
+                handleKeyboardKeyPress('backspace');
+                return;
+            }
+
+            if (key === 'ENTER') {
+                if (keyboardTarget === 'username') {
+                    setIsKeyboardVisible(false);
+                    setKeyboardTarget('');
+                    setFocusKey('password');
+                    return;
+                }
+
+                if (keyboardTarget === 'password') {
+                    setIsKeyboardVisible(false);
+                    setKeyboardTarget('');
+                    setFocusKey('login_btn');
+                    return;
+                }
+            }
+
+            if (key === 'SPACE') {
+                handleKeyboardKeyPress(' ');
+                return;
+            }
+
+            handleKeyboardKeyPress(isCaps ? key.toUpperCase() : key.toLowerCase());
+        }
     };
-
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setBgIndex((prev) => (prev + 1) % backgrounds.length);
-        }, 8000);
-        
-        return () => clearInterval(interval);
-    }, []);
 
     const handleLogin = async () => {
         setIsKeyboardVisible(false);
         setKeyboardTarget('');
 
+        // Demo login
         if (username === 'omi' && password === '123') {
             const dummyToken = "DUMMY_TOKEN_OMI";
             localStorage.setItem('ulka_username', username);
             localStorage.setItem('ulka_password', password);
             localStorage.setItem('ulka_token', dummyToken);
-            setAccessToken("DUMMY_TOKEN_OMI");
+            setAccessToken(dummyToken);
             setIsLoggedIn(true);
-            setUsername('omi');
-            setProfiles([
-                { id: 'p2', name: 'Rajini', image: AVATAR_LIST[0] },
-                { id: 'p3', name: 'Vamsi', image: AVATAR_LIST[1] },
-            ]);
-            setLoading(false);
             return;
         }
 
@@ -1457,12 +3541,11 @@ const LoginScreen = ({ startAtProfiles = false }) => {
             if (response.data?.status_code === 200 && response.data.response_object?.[0]?.access_token) {
                 const token = response.data.response_object[0].access_token;
                 
-                localStorage.setItem('ulka_username', username); 
+                localStorage.setItem('ulka_username', username);
                 localStorage.setItem('ulka_password', password);
                 localStorage.setItem('ulka_token', token);
                 setAccessToken(token);
-                setIsLoggedIn(true); 
-                setProfiles([]); 
+                setIsLoggedIn(true);
             } else {
                 setApiError(response.data?.error_description || 'Login failed.');
             }
@@ -1472,40 +3555,23 @@ const LoginScreen = ({ startAtProfiles = false }) => {
             setLoading(false);
         }
     };
-    // Logout Handler (Unchanged)   
-    const handleLogout = () => {
-        localStorage.removeItem('ulka_token');
-        localStorage.removeItem('ulka_username');
-        localStorage.removeItem('ulka_password');
-        setIsLoggedIn(false);
-        setUsername('');
-        setPassword('');
-        setAccessToken('');
-        setApiError('');
-        setProfiles([]);
-        setIsViewingHome(false); 
-        setSelectedProfile('');
-        setIsKeyboardVisible(false);
-        setKeyboardTarget('');
-        setActiveInput('');
-    };
-    
-    const handleSelectProfileAndNavigate = (profileName) => {
-        setSelectedProfile(profileName);
+
+    const handleSelectProfileAndNavigate = (profile, token) => {
+        setSelectedProfile(profile);
         setIsViewingHome(true);
     };
 
     const handleSaveNewProfile = (newProfile) => {
-        if (profiles.length < 3) {
-            const avatarIndex = profiles.length; 
+        if (dummyProfiles.length < 3) {
+            const avatarIndex = dummyProfiles.length;
             const image = AVATAR_LIST[avatarIndex] || AVATAR_DEFAULT;
             
-            setProfiles(prev => [
-                ...prev, 
-                { 
-                    id: `p${prev.length + 2}`,
-                    name: newProfile.name, 
-                    image: image 
+            setDummyProfiles(prev => [
+                ...prev,
+                {
+                    id: `dummy-${prev.length + 1}`,
+                    name: newProfile.name,
+                    image: image
                 }
             ]);
         }
@@ -1516,303 +3582,357 @@ const LoginScreen = ({ startAtProfiles = false }) => {
         if (key === 'backspace') {
             if (keyboardTarget === 'username') setUsername(prev => prev.slice(0, -1));
             if (keyboardTarget === 'password') setPassword(prev => prev.slice(0, -1));
-        } else if (key === 'enter') {
-            handleLogin();
         } else {
             if (keyboardTarget === 'username') setUsername(prev => prev + key);
             if (keyboardTarget === 'password') setPassword(prev => prev + key);
         }
     };
 
-    const handleInputFocus = (inputName) => {
-        setActiveInput(inputName);
-        setFocusKey(inputName);
-    };
-
     const getInputBorder = (inputName) => {
         const baseStyle = {
             width: '100%',
-            height: '48px', 
-            backgroundColor: 'rgba(55, 134, 238, 0.1)', 
-            border: '5px solid',
-            borderRadius: '8px', 
-            padding: '0 16px',   
+            height: '50px',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            border: '4px solid',
+            borderRadius: '8px',
+            padding: '0 16px',
             display: 'flex',
             alignItems: 'center',
-            marginBottom: '32px', 
-            transition: 'border-color 300ms, transform 300ms, box-shadow 300ms',
+            marginBottom: '20px',
+            transition: 'all 0.3s',
             cursor: 'text',
         };
 
-        if (activeInput === inputName || focusKey === inputName) {
+        if (focusKey === inputName) {
             return {
                 ...baseStyle,
-                borderColor: COLOR_FOCUS, 
-                transform: 'scale(1.03)', 
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)', 
+                borderColor: COLOR_FOCUS,
+                boxShadow: `0 0 10px ${COLOR_FOCUS}`,
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
             };
         } else {
             return {
                 ...baseStyle,
-                borderColor: '#6b7280', 
+                borderColor: '#444',
             };
         }
     };
 
+    // Main container styles
+    const mainContainerStyle = {
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        backgroundColor: COLOR_BLACK,
+        overflow: 'hidden',
+        position: 'relative',
+    };
+
+    // Left panel styles
+    const leftPanelStyle = {
+        width: '35%',
+        minWidth: '500px',
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: COLOR_BLACK,
+        zIndex: 10,
+        position: 'relative',
+    };
+
+    // Login form container
+    const loginFormContainerStyle = {
+        width: '100%',
+        maxWidth: '400px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 20px',
+    };
+
+    // Right panel styles
+    const rightPanelStyle = {
+        flex: 1,
+        height: '100vh',
+        position: 'relative',
+        backgroundColor: COLOR_BLACK,
+        overflow: 'hidden',
+    };
+
+    // Background container
+    const backgroundContainerStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+    };
+
+    // Background image style
+    const backgroundImageStyle = (isActive) => ({
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+        opacity: isActive ? 1 : 0,
+        transition: 'opacity 1s ease-in-out',
+    });
+
+    // Overlay style
+    const overlayStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%)',
+        zIndex: 2,
+    };
+
     return (
-        <div style={{
-            width: '100%',
-            height: '100vh', 
-            display: 'flex',
-            backgroundColor: COLOR_BLACK, 
-            overflow: 'hidden',
-        }}>
+        <div style={mainContainerStyle}>
             <GlobalInputStyles />
 
-            {isViewingHome && isLoggedIn && (
+            {/* Home Screen - Accessible by all profiles */}
+            {isViewingHome && isLoggedIn && selectedProfile && (
                 <HomeScreen
-                    profileName={selectedProfile}
+                    profileName={selectedProfile.name}
+                    profileType={selectedProfile.type}
                     accessToken={accessToken}
                     onGoBackToProfiles={() => setIsViewingHome(false)}
                 />
             )}
 
+            {/* Create Profile Screen */}
             {isCreatingProfile && (
                 <CreateProfileScreen
                     username={username}
                     onGoBack={() => setIsCreatingProfile(false)}
-                    onSaveProfile={handleSaveNewProfile} 
+                    onSaveProfile={handleSaveNewProfile}
                 />
             )}
-            
+
+            {/* Profile Screen - All profiles working */}
             {isLoggedIn && !isCreatingProfile && !isViewingHome && (
-                <ProfileScreen 
-                    username={username} 
-                    accessToken={accessToken} 
-                    onLogout={handleLogout} 
-                    onCreateProfile={profiles.length < 3 ? () => setIsCreatingProfile(true) : () => alert("Maximum 4 profiles reached.")}
-                    profiles={profiles}
-                    focusedId={focusedId}
+                <ProfileScreen
+                    mainUsername={username}
+                    accessToken={accessToken}
+                    onCreateProfile={() => {
+                        if (dummyProfiles.length < 3) {
+                            setIsCreatingProfile(true);
+                        } else {
+                            alert("Maximum 3 dummy profiles reached. You cannot add more.");
+                        }
+                    }}
+                    dummyProfiles={dummyProfiles}
                     onSelectProfile={handleSelectProfileAndNavigate}
-                    setFocusedId={setFocusedId}
+                    backgrounds={backgrounds}
+                    bgIndex={bgIndex}
                 />
             )}
 
-
+            {/* Login Screen */}
             {!isLoggedIn && (
-                <div style={{
-                    width: '30%', 
-                    height: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: COLOR_BLACK, 
-                    zIndex: 10, 
-                    minWidth: '580px', 
-                }}>
-                    <div style={{
-                        width: '100%',
-                        maxWidth: '320px', 
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        height: '100%',
-                        paddingTop: '100px', 
-                        paddingBottom: '8px',
-                    }}>
-                        <div style={{ width: '100%', textAlign: 'center', marginBottom: '20px' }}>
-                            <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>THE FUTURE OF</h2>
-                            <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>ENTERTAINMENT</h2>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <>
+                    {/* Left Panel - Login Form */}
+                    <div style={leftPanelStyle}>
+                        <div style={loginFormContainerStyle}>
+                            {/* Header Text */}
+                            <div style={{ width: '100%', textAlign: 'center', marginBottom: '30px' }}>
+                                <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '2px', color: COLOR_HEADER, lineHeight: '1.3' }}>
+                                    THE FUTURE OF
+                                </h2>
+                                <h2 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '2px', color: COLOR_HEADER, lineHeight: '1.3' }}>
+                                    ENTERTAINMENT
+                                </h2>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                                 <h2 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '0.15em', color: COLOR_HEADER }}>IS HERE</h2>
                                 <div style={{ width: '40px', height: '40px', marginLeft: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={ICON_DOWN_ARROW} alt="Down Arrow" style={{ width: '30px', height: '30px' }} />
                                 </div>
                             </div>
-                        </div>
-
-                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            {/* USERNAME INPUT */}
-                        <div 
-                            style={getInputBorder('username')}
-                            onMouseEnter={() => handleInputFocus('username')}
-                        >
-                            <input
-                                style={{ flex: 1, backgroundColor: 'transparent', color: COLOR_WHITE, border: 'none', outline: 'none' }}
-                                type="text"
-                                placeholder="Username"
-                                value={username}
-                                onFocus={() => handleInputFocus('username')}
-                                readOnly={true} 
-                            />
-                        </div>
-
-                            {/* PASSWORD INPUT */}
-                            <div 
-                            style={getInputBorder('password')}
-                            onMouseEnter={() => handleInputFocus('password')}
-                        >
-                            <input
-                                style={{ flex: 1, backgroundColor: 'transparent', color: COLOR_WHITE, border: 'none', outline: 'none' }}
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Password"
-                                value={password}
-                                onFocus={() => handleInputFocus('password')}
-                                readOnly={true}
-                            />
-                            <button onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <Icon name={showPassword ? "eye-off-outline" : "eye-outline"} />
-                            </button>
-                        </div>
-                            
-                            {apiError && (
-                                <p style={{ color: COLOR_PRIMARY, marginBottom: '10px', fontSize: '14px' }}>
-                                    ⚠️ {apiError}
-                                </p>
-                            )}
-                            
-                            {/* SIGN IN BUTTON (Unchanged) */}
-                            <button
-                                onClick={handleLogin} 
-                                onFocus={() => handleInputFocus('login_btn')}
-                                style={{
-                                    width: '110%',
-                                    height: '48px',
-                                    borderRadius: '8px',
-                                    fontWeight: 'bold',
-                                    fontSize: '18px',
-                                    marginBottom: '32px',
-                                    backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY,
-                                    border: focusKey === 'login_btn' ? '4px solid white' : 'none',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    transform: focusKey === 'login_btn' ? 'scale(1.05)' : 'scale(1)',
-                                    color: COLOR_WHITE
-                                }}
-                            >
-                                {loading ? 'Signing In...' : 'Sign In'}
-                            </button>
-
-                            {/* INFO / POLICY (Unchanged) */}
-                            <div style={{ textAlign: 'center', width: '100%', marginBottom: '32px' }}>
-                                <a href="#" style={{ fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline', color: COLOR_HEADER }}>Privacy Policy</a>
-                                <p style={{ fontSize: '20px', fontWeight: 'bold', color: COLOR_HEADER, marginTop: '8px' }}>
-                                    <span style={{ color: COLOR_4K, fontSize: '30px' }}>4K</span> Ultra HD Streaming
-                                </p>
                             </div>
 
-                            {/* DEVICE TAGS (Unchanged) */}
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                {["SmartTV", "STB", "Stick", "Mobile"].map((d) => (
-                                    <button key={d}
-                                        style={{
-                                            color: COLOR_WHITE,
+                            {/* Login Form */}
+                            <div style={{ width: '100%' }}>
+                                {/* Username Input */}
+                                <div 
+                                    style={getInputBorder('username')}
+                                    onClick={() => {
+                                        setFocusKey('username');
+                                        setKeyboardTarget('username');
+                                        setIsKeyboardVisible(true);
+                                    }}
+                                >
+                                    <input
+                                        style={{ 
+                                            flex: 1, 
+                                            background: 'transparent', 
+                                            color: COLOR_WHITE, 
+                                            border: 'none', 
+                                            outline: 'none', 
                                             fontSize: '16px',
-                                            fontWeight: '900',
-                                            padding: '8px 13px',
-                                            borderRadius: '8px',
-                                            margin: '0 6px',
-                                            backgroundColor: `${COLOR_PRIMARY}cc`, 
-                                            border: 'none',
-                                            cursor: 'pointer',
+                                            width: '100%',
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLOR_PRIMARY}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = `${COLOR_PRIMARY}cc`}
+                                        type="text"
+                                        placeholder="Username"
+                                        value={username}
+                                        readOnly={true}
+                                    />
+                                </div>
+
+                                {/* Password Input */}
+                                <div 
+                                    style={getInputBorder('password')}
+                                    onClick={() => {
+                                        setFocusKey('password');
+                                        setKeyboardTarget('password');
+                                        setIsKeyboardVisible(true);
+                                    }}
+                                >
+                                    <input
+                                        style={{ 
+                                            flex: 1, 
+                                            background: 'transparent', 
+                                            color: COLOR_WHITE, 
+                                            border: 'none', 
+                                            outline: 'none', 
+                                            fontSize: '16px',
+                                            width: '100%',
+                                        }}
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Password"
+                                        value={password}
+                                        readOnly={true}
+                                    />
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowPassword(!showPassword);
+                                        }} 
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 5px' }}
                                     >
-                                        {d}
+                                        <Icon name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} />
                                     </button>
-                                ))}
+                                </div>
+
+                                {/* Error Message */}
+                                {apiError && (
+                                    <p style={{ color: COLOR_PRIMARY, marginBottom: '15px', fontSize: '14px', textAlign: 'center' }}>
+                                        ⚠️ {apiError}
+                                    </p>
+                                )}
+
+                                {/* Sign In Button */}
+                                <button
+                                    onClick={handleLogin}
+                                    style={{
+                                        width: '100%',
+                                        height: '50px',
+                                        borderRadius: '8px',
+                                        fontWeight: 'bold',
+                                        fontSize: '18px',
+                                        marginBottom: '25px',
+                                        backgroundColor: focusKey === 'login_btn' ? COLOR_FOCUS : COLOR_PRIMARY,
+                                        border: focusKey === 'login_btn' ? '3px solid white' : 'none',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        transform: focusKey === 'login_btn' ? 'scale(1.02)' : 'scale(1)',
+                                        color: COLOR_WHITE,
+                                        outline: 'none',
+                                    }}
+                                    onMouseEnter={() => setFocusKey('login_btn')}
+                                >
+                                    {loading ? 'Signing In...' : 'Sign In'}
+                                </button>
+
+                                {/* Info Section */}
+                                <div style={{ textAlign: 'center', width: '100%', marginBottom: '25px' }}>
+                                    <a href="#" style={{ fontSize: '16px', fontWeight: 'bold', textDecoration: 'underline', color: COLOR_HEADER }}>
+                                        Privacy Policy
+                                    </a>
+                                    <p style={{ fontSize: '18px', fontWeight: 'bold', color: COLOR_HEADER, marginTop: '10px' }}>
+                                        <span style={{ color: COLOR_4K, fontSize: '26px' }}>4K</span> Ultra HD Streaming
+                                    </p>
+                                </div>
+
+                                {/* Device Tags */}
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                    {["SmartTV", "STB", "Stick", "Mobile"].map((device) => (
+                                        <span
+                                            key={device}
+                                            style={{
+                                                color: COLOR_WHITE,
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
+                                                padding: '6px 15px',
+                                                borderRadius: '20px',
+                                                backgroundColor: 'rgba(229, 9, 20, 0.8)',
+                                                border: 'none',
+                                            }}
+                                        >
+                                            {device}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
 
+                            {/* Logo */}
+                            <img src={LOGO_ULKA} alt="Ulka TV" style={{ width: '350px', marginTop: '30px' }} />
+                        </div>
+                    </div>
+
+                    {/* Right Panel - Fixed Background Images */}
+                    <div style={rightPanelStyle}>
+                        <div style={backgroundContainerStyle}>
+                            {/* Background Image 1 */}
+                            <img 
+                                src={backgrounds[0]} 
+                                alt="Background 1"
+                                style={backgroundImageStyle(bgIndex === 0)}
+                            />
+                            
+                            {/* Background Image 2 */}
+                            <img 
+                                src={backgrounds[1]} 
+                                alt="Background 2"
+                                style={backgroundImageStyle(bgIndex === 1)}
+                            />
                         </div>
 
-                        {/* LOGO (Unchanged) */}
-                        <img src={LOGO_ULKA} alt="Company Logo" style={{ width: '400px' }} />
+                        {/* Dark Gradient Overlay */}
+                        <div style={overlayStyle}></div>
                     </div>
-                </div>
+                </>
             )}
-            
-            {!isViewingHome && (
-                <div style={{
-                    flex: 1, 
-                    height: '100%',
-                    position: 'relative', 
-                    backgroundColor: COLOR_BLACK, 
-                    zIndex: 1, 
-                }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        overflow: 'hidden',
-                    }}>
-                        {/* BG 1 */}
-                        <img 
-                            src={backgrounds[0]} 
-                            alt="Background Scene 1"
-                            style={{
-                                position: 'fixed', 
-                                width: '70%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                opacity: bgIndex === 0 ? 1 : 0, 
-                                backgroundColor: COLOR_BLACK, 
-                                transition: 'opacity 1s ease-in-out', 
-                            }}
-                        />
 
-                        <img 
-                            src={backgrounds[1]} 
-                            alt="Background Scene 2"
-                            style={{
-                                position: 'fixed', 
-                                width: '70%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                opacity: bgIndex === 1 ? 1 : 0,
-                                backgroundColor: COLOR_BLACK, 
-                                transition: 'opacity 1s ease-in-out', 
-                            }}
-                        />
-                    </div>
-
-                    {/* DARK OVERLAY LAYER */}
-                    <div style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        width: '100%', 
-                        height: '100%', 
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)', 
-                        zIndex: 2,
-                    }}></div>
-                </div>
-            )}
-            
-            {/* 6. Custom Keyboard Integration */}
+            {/* Custom Keyboard */}
             <div style={{
                 position: 'fixed',
-                bottom: isKeyboardVisible ? '250px' : '-500px',
-                left: '260px',
-                right: '0',
-                zIndex: 100,
-                transition: 'bottom 0.4s cubic-bezier(0.17, 0.04, 0.03, 0.94)',
+                bottom: isKeyboardVisible ? '30px' : '-600px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1000,
+                transition: 'bottom 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
                 display: 'flex',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                pointerEvents: isKeyboardVisible ? 'auto' : 'none',
             }}>
                 <CustomKeyboard
-                layout={layout}
-                isCaps={isCaps}
-                focusedPos={kbPos}
-                isKeyboardFocused={focusKey === 'keyboard'}
+                    layout={layout}
+                    isCaps={isCaps}
+                    focusedPos={kbPos}
+                    isKeyboardFocused={focusKey === 'keyboard'}
                 />
-
             </div>
         </div>
     );
 };
 
 export default LoginScreen;
+
+
 

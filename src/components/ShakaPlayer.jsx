@@ -77,3 +77,4 @@ const ShakaPlayer = ({ url, drmToken, isEncrypted }) => {
 
 export default ShakaPlayer;
 
+    
