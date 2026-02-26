@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import ShakaPlayer from './ShakaPlayer';
 import { getPallyTokenFromNetwork } from './api.js';
 
-const API_HOST = 'http://202.62.66.115:8080';
+const API_HOST = 'https://mware.ulka.tv';
 const CHANNELS_ENDPOINT = '/apiv2/channels/list';
 
 const LANGUAGES = [

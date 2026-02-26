@@ -3536,7 +3536,7 @@ const LoginScreen = ({ startAtProfiles = false }) => {
         };
 
         try {
-            const response = await axios.post('http://202.62.66.115:8080/apiv2/credentials/loginMini', apiBody);
+            const response = await axios.post('https://mware.ulka.tv/apiv2/credentials/loginMini', apiBody);
 
             if (response.data?.status_code === 200 && response.data.response_object?.[0]?.access_token) {
                 const token = response.data.response_object[0].access_token;

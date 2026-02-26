@@ -1,4 +1,4 @@
-const URL = 'http://202.62.66.115:8080';
+const URL = 'https://mware.ulka.tv';
 const BASE_URL = URL + '/';
 const PALLYCON_TOKEN_URL = BASE_URL + 'apiv2/pallycon/TokenIssue';
  // live public ip
