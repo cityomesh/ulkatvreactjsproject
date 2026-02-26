@@ -65,8 +65,22 @@ const HomeScreen = ({ accessToken }) => {
             if (!currentToken) return;
             try {
                 const response = await axios.post(`${API_HOST}${CHANNELS_ENDPOINT}`, { auth: currentToken });
+                // if (response.data.status_code === 200) {
+                //     const data = response.data.response_object;
+                //     setAllChannels(data);
+                //     updateFilteredList(data, 0, 0);
+                // }
+
                 if (response.data.status_code === 200) {
-                    const data = response.data.response_object;
+                    let data = response.data.response_object;
+                    
+                    // ఇక్కడ HTTP లింకులను HTTPS లోకి మార్చండి
+                    data = data.map(channel => ({
+                        ...channel,
+                        icon_url: channel.icon_url?.replace('http://', 'https://'),
+                        stream_url: channel.stream_url?.replace('http://', 'https://')
+                    }));
+                    
                     setAllChannels(data);
                     updateFilteredList(data, 0, 0);
                 }
@@ -246,7 +260,7 @@ const HomeScreen = ({ accessToken }) => {
                         </div>
                     </div>
 
-                    <div style={{ ...styles.sidebarColumn, width: '230px' }}>
+                    {/* <div style={{ ...styles.sidebarColumn, width: '230px' }}>
                         <div style={headerBaseStyle}>Channels</div>
                         <div style={styles.scrollArea} ref={chanRef}>
                         {filteredChannels.map((ch, i) => {
@@ -274,6 +288,62 @@ const HomeScreen = ({ accessToken }) => {
                         ) : (
                             <div style={{ textAlign: 'center' }}>
                                 {currentHover?.icon_url && <img src={currentHover.icon_url} alt="" style={{ height: '150px', marginBottom: '15px' }} />}
+                                <h2 style={{ fontSize: '22px', color: '#00D1FF' }}>PRESS OK TO WATCH</h2>
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        {[1, 2, 3].map(n => (
+                            <div key={n} style={{ flex: 1, height: '80px', backgroundColor: '#00D1FF', borderRadius: '6px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                                Program {n}
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ height: '50px', backgroundColor: '#111', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+                        <div style={{ color: '#fff', fontSize: '18px', animation: 'marquee 20s linear infinite', whiteSpace: 'nowrap' }}>
+                            • Use Arrows to Navigate • Press Ok to Play • Enjoy Ulka TV High Definition •
+                        </div>
+                    </div>
+                </div> */}
+
+                <div style={{ ...styles.sidebarColumn, width: '230px' }}>
+                    <div style={headerBaseStyle}>Channels</div>
+                    <div style={styles.scrollArea} ref={chanRef}>
+                    {filteredChannels.map((ch, i) => {
+                        const isFocused = activeSection === 'channels' && focusedIdx === i;
+                        return (
+                            <div key={ch.id} style={{ 
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0',
+                                transform: isFocused ? 'scale(1.3)' : 'scale(1)', transition: 'all 0.2s',
+                                marginBottom: '15px'
+                            }}>
+                                <img 
+                                    src={ch.icon_url?.replace('http://', 'https://')} 
+                                    alt={ch.title} 
+                                    style={{ width: '150px', height: '85px', objectFit: 'contain', border: isFocused ? '3px solid red' : 'none', borderRadius: '8px' }} 
+                                />
+                                {isFocused && <div style={{ fontSize: '11px', color: '#fff', marginTop: '5px' }}>{ch.channel_number}. {ch.title}</div>}
+                            </div>
+                        );
+                    })}
+                    </div>
+                </div>
+                </div>
+
+                <div style={styles.rightPanel}>
+                    <div style={{ ...headerBaseStyle, height: '55px', fontSize: '20px' }}>ULKA TV ADVERTISEMENT</div>
+                    <div style={styles.playerWrapper(activeSection === 'player')}>
+                        {playingUrl ? (
+                            <ShakaPlayer url={playingUrl} drmToken={drmTokenUpdate}/>
+                        ) : (
+                            <div style={{ textAlign: 'center' }}>
+                                {currentHover?.icon_url && 
+                                    <img 
+                                        src={currentHover.icon_url?.replace('http://', 'https://')} 
+                                        alt="" 
+                                        style={{ height: '150px', marginBottom: '15px' }} 
+                                    />
+                                }
                                 <h2 style={{ fontSize: '22px', color: '#00D1FF' }}>PRESS OK TO WATCH</h2>
                             </div>
                         )}
